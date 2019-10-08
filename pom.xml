@@ -149,6 +149,7 @@ LICENSE file.
     <module>ignite</module>
     <module>infinispan</module>
     <module>jdbc</module>
+    <module>jnvm</module>
     <module>kudu</module>
     <!--<module>mapkeeper</module>-->
     <module>maprdb</module>
