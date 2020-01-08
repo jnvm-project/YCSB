@@ -53,7 +53,7 @@ public class VolatileHashMapClient extends AbstractMapClient {
         throw new DBException(e);
       }
     } else {
-      backend = new ConcurrentHashMap<>();
+      backend = new ConcurrentHashMap<>(initialCapacity);
     }
   }
 

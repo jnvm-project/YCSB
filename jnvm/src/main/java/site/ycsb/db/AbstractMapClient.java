@@ -24,11 +24,13 @@ import site.ycsb.ByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
 import site.ycsb.Status;
+import site.ycsb.Client;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Set;
+import java.util.Properties;
 
 /**
  * Map abstract client.
@@ -45,12 +47,20 @@ public abstract class AbstractMapClient extends DB {
   protected PMemPool pmemPool;
   protected Map<String, Map<String, String>> backend;
 
+  protected int initialCapacity;
+
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
    * DB instance per client thread.
    */
   @Override
   public void init() throws DBException {
+    Properties props = getProperties();
+    long recordcount =
+        Long.parseLong(props.getProperty(Client.RECORD_COUNT_PROPERTY, Client.DEFAULT_RECORD_COUNT));
+    initialCapacity = (recordcount > Integer.MAX_VALUE) ?
+        Integer.MAX_VALUE : (int) recordcount;
+
     pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
     pmemPool.open();
   }

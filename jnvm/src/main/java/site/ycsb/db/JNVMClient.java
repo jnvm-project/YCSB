@@ -33,7 +33,7 @@ public class JNVMClient extends AbstractMapClient {
   @Override
   public void init() throws DBException {
     super.init();
-    backend = new PersistentHashMap<>(null, null, 16, pmemPool);
+    backend = new PersistentHashMap<>(null, null, initialCapacity, pmemPool);
   }
 
 }
