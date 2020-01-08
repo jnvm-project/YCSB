@@ -17,7 +17,7 @@
  */
 package site.ycsb.db;
 
-import eu.telecomsudparis.jnvm.api.util.persistent.PersistentHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.PersistentHashMap;
 
 import site.ycsb.DBException;
 

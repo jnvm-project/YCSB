@@ -17,7 +17,7 @@
  */
 package site.ycsb.db;
 
-import eu.telecomsudparis.jnvm.api.PMemPool;
+import eu.telecomsudparis.jnvm.PMemPool;
 
 import site.ycsb.StringByteIterator;
 import site.ycsb.ByteIterator;
