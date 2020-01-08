@@ -41,7 +41,7 @@ import java.util.Properties;
  */
 public abstract class AbstractMapClient extends DB {
 
-  private static final String PMEM_FILE="/tmp/pMemYCSB";
+  private static final String PMEM_FILE="/pmem0/pMemYCSB";
   private static final long POOL_SIZE=4*1024*1024*1024L;
 
   protected PMemPool pmemPool;
@@ -154,6 +154,7 @@ public abstract class AbstractMapClient extends DB {
       return Status.ERROR;
     }
     StringByteIterator.putAllAsStrings(row, values);
+    //TODO This insertion should not be required
     backend.put(key, row);
     return Status.OK;
   }
