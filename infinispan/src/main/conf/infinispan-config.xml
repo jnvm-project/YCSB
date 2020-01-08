@@ -18,16 +18,13 @@ LICENSE file.
 
 <infinispan
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:infinispan:config:5.0 http://www.infinispan.org/schemas/infinispan-config-5.0.xsd"
-      xmlns="urn:infinispan:config:5.0">
+      xsi:schemaLocation="urn:infinispan:config:9.4 http://www.infinispan.org/schemas/infinispan-config-9.4.xsd"
+      xmlns="urn:infinispan:config:9.4">
 
-   <global>
+   <cache-container name="server" default-cache="repl">
       <transport clusterName="x" />
-   </global>
+      <replicated-cache name="repl" batching="true" />
+   </cache-container>
 
-   <default>
-      <transaction />
-      <invocationBatching enabled="true" />
-   </default>
 
 </infinispan>

@@ -127,7 +127,9 @@ public class InfinispanClient extends DB {
         row.clear();
         StringByteIterator.putAllAsStrings(row, values);
       } else {
-        infinispanManager.getCache(table).put(key, values);
+        Map<String, String> row = new HashMap<>();
+        StringByteIterator.putAllAsStrings(row, values);
+        infinispanManager.getCache(table).put(key, row);
       }
 
       return Status.OK;

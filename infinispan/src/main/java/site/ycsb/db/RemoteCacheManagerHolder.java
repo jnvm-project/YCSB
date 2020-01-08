@@ -20,6 +20,8 @@ package site.ycsb.db;
 import java.util.Properties;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.infinispan.client.hotrod.configuration.Configuration;
 
 /**
  * Utility class to ensure only a single RemoteCacheManager is created.
@@ -37,8 +39,10 @@ final class RemoteCacheManagerHolder {
       synchronized (RemoteCacheManagerHolder.class) {
         result = cacheManager;
         if (result == null) {
-          result = new RemoteCacheManager(props);
-          cacheManager = new RemoteCacheManager(props);
+          ConfigurationBuilder cb = new ConfigurationBuilder().withProperties(props);
+          Configuration conf = cb.build();
+          result = new RemoteCacheManager(conf);
+          cacheManager = new RemoteCacheManager(conf);
         }
       }
     }
