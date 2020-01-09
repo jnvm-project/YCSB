@@ -40,7 +40,7 @@ public class VolatileHashMapClient extends AbstractMapClient {
   public void init() throws DBException {
     super.init();
 
-    if (pmemPool.getSize() > 0) {
+    if (dotransactions) {
       try {
         byte[] sbytes = new byte[(int) pmemPool.BLOCK_SIZE];
         pmemPool.get(sbytes, SIZE);
@@ -59,13 +59,15 @@ public class VolatileHashMapClient extends AbstractMapClient {
 
   @Override
   public void cleanup() throws DBException {
-    try {
-      byte[] vmbytes = PersistentHashMap.toByteArray(backend);
-      byte[] sbytes = PersistentHashMap.toByteArray(vmbytes.length);
-      pmemPool.put(sbytes, SIZE);
-      pmemPool.put(vmbytes, VMAP);
-    } catch(Exception e) {
-      throw new DBException(e);
+    if (!dotransactions) {
+      try {
+        byte[] vmbytes = PersistentHashMap.toByteArray(backend);
+        byte[] sbytes = PersistentHashMap.toByteArray(vmbytes.length);
+        pmemPool.put(sbytes, SIZE);
+        pmemPool.put(vmbytes, VMAP);
+      } catch(Exception e) {
+        throw new DBException(e);
+      }
     }
 
     super.cleanup();

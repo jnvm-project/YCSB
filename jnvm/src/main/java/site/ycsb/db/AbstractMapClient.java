@@ -48,6 +48,7 @@ public abstract class AbstractMapClient extends DB {
   protected Map<String, Map<String, String>> backend;
 
   protected int initialCapacity;
+  protected boolean dotransactions;
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
@@ -60,6 +61,8 @@ public abstract class AbstractMapClient extends DB {
         Long.parseLong(props.getProperty(Client.RECORD_COUNT_PROPERTY, Client.DEFAULT_RECORD_COUNT));
     initialCapacity = (recordcount > Integer.MAX_VALUE) ?
         Integer.MAX_VALUE : (int) recordcount;
+    dotransactions =
+        Boolean.valueOf(props.getProperty(Client.DO_TRANSACTIONS_PROPERTY, String.valueOf(true)));
 
     pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
     pmemPool.open();
