@@ -18,6 +18,7 @@
 package site.ycsb.db;
 
 import eu.telecomsudparis.jnvm.util.persistent.PersistentHashMap;
+import eu.telecomsudparis.jnvm.PMemPool;
 
 import site.ycsb.DBException;
 
@@ -40,6 +41,8 @@ public class VolatileHashMapClient extends AbstractMapClient {
   public void init() throws DBException {
     super.init();
 
+    pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
+    pmemPool.open();
     if (dotransactions) {
       try {
         byte[] sbytes = new byte[(int) pmemPool.BLOCK_SIZE];
@@ -69,6 +72,8 @@ public class VolatileHashMapClient extends AbstractMapClient {
         throw new DBException(e);
       }
     }
+    pmemPool.close();
+    pmemPool = null;
 
     super.cleanup();
   }

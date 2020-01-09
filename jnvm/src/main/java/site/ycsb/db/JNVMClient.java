@@ -17,6 +17,7 @@
  */
 package site.ycsb.db;
 
+import eu.telecomsudparis.jnvm.PMemPool;
 import eu.telecomsudparis.jnvm.util.persistent.PersistentHashMap;
 
 import site.ycsb.DBException;
@@ -33,7 +34,17 @@ public class JNVMClient extends AbstractMapClient {
   @Override
   public void init() throws DBException {
     super.init();
+
+    pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
+    pmemPool.open();
     backend = new PersistentHashMap<>(null, null, initialCapacity, pmemPool);
+  }
+
+  @Override
+  public void cleanup() throws DBException {
+    super.cleanup();
+    pmemPool.close();
+    pmemPool = null;
   }
 
 }

@@ -41,8 +41,8 @@ import java.util.Properties;
  */
 public abstract class AbstractMapClient extends DB {
 
-  private static final String PMEM_FILE="/pmem0/pMemYCSB";
-  private static final long POOL_SIZE=4*1024*1024*1024L;
+  protected static final String PMEM_FILE="/pmem0/pMemYCSB";
+  protected static final long POOL_SIZE=4*1024*1024*1024L;
 
   protected PMemPool pmemPool;
   protected Map<String, Map<String, String>> backend;
@@ -63,9 +63,6 @@ public abstract class AbstractMapClient extends DB {
         Integer.MAX_VALUE : (int) recordcount;
     dotransactions =
         Boolean.valueOf(props.getProperty(Client.DO_TRANSACTIONS_PROPERTY, String.valueOf(true)));
-
-    pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
-    pmemPool.open();
   }
 
   /**
@@ -74,8 +71,6 @@ public abstract class AbstractMapClient extends DB {
    */
   @Override
   public void cleanup() throws DBException {
-    pmemPool.close();
-    pmemPool = null;
     backend = null;
   }
 
