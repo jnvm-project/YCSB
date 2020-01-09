@@ -17,13 +17,14 @@
  */
 package site.ycsb.db;
 
-import eu.telecomsudparis.jnvm.util.persistent.PersistentHashMap;
-import eu.telecomsudparis.jnvm.PMemPool;
-
 import site.ycsb.DBException;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 
 /**
  * Volatile HashMap client.
@@ -41,17 +42,13 @@ public class VolatileHashMapClient extends AbstractMapClient {
   public void init() throws DBException {
     super.init();
 
-    pmemPool = new PMemPool(POOL_SIZE, PMEM_FILE);
-    pmemPool.open();
     if (dotransactions) {
       try {
-        byte[] sbytes = new byte[(int) pmemPool.BLOCK_SIZE];
-        pmemPool.get(sbytes, SIZE);
-        Integer size = (Integer) PersistentHashMap.toObject(sbytes);
-
-        byte[] vmbytes = new byte[size];
-        pmemPool.get(vmbytes, VMAP);
-        backend = (ConcurrentHashMap<String, Map<String, String>>) PersistentHashMap.toObject(vmbytes);
+        FileInputStream fis = new FileInputStream(PMEM_FILE);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        backend = (ConcurrentHashMap<String, Map<String, String>>) ois.readObject();
+        ois.close();
+        fis.close();
       } catch(Exception e) {
         throw new DBException(e);
       }
@@ -64,16 +61,15 @@ public class VolatileHashMapClient extends AbstractMapClient {
   public void cleanup() throws DBException {
     if (!dotransactions) {
       try {
-        byte[] vmbytes = PersistentHashMap.toByteArray(backend);
-        byte[] sbytes = PersistentHashMap.toByteArray(vmbytes.length);
-        pmemPool.put(sbytes, SIZE);
-        pmemPool.put(vmbytes, VMAP);
+        FileOutputStream fos = new FileOutputStream(PMEM_FILE);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(backend);
+        oos.close();
+        fos.close();
       } catch(Exception e) {
         throw new DBException(e);
       }
     }
-    pmemPool.close();
-    pmemPool = null;
 
     super.cleanup();
   }
