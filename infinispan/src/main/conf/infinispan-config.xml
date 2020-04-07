@@ -23,6 +23,7 @@ LICENSE file.
 
    <cache-container name="local" default-cache="usertable">
       <local-cache name="usertable">
+         <memory><object size="-1"/></memory>
          <persistence passivation="false">
             <file-store fetch-state="true" read-only="false" purge="false" path="/pmem0/" />
             <!--
