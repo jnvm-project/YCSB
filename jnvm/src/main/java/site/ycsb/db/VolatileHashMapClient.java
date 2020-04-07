@@ -20,6 +20,8 @@ package site.ycsb.db;
 import site.ycsb.DBException;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Map;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,39 +40,54 @@ public class VolatileHashMapClient extends AbstractMapClient {
   private static final int SIZE=0;
   private static final int VMAP=1;
 
+  private static final Phaser INIT = new Phaser(1);
+  private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
+
   @Override
   public void init() throws DBException {
     super.init();
 
-    if (dotransactions) {
-      try {
-        FileInputStream fis = new FileInputStream(PMEM_FILE);
-        ObjectInputStream ois = new ObjectInputStream(fis);
-        backend = (ConcurrentHashMap<String, Map<String, String>>) ois.readObject();
-        ois.close();
-        fis.close();
-      } catch(Exception e) {
-        throw new DBException(e);
-      }
+    int curInitCount = INIT_COUNT.getAndIncrement();
+
+    if (curInitCount > 0) {
+      INIT.awaitAdvance(0);
     } else {
-      backend = new ConcurrentHashMap<>(initialCapacity);
+      if (dotransactions) {
+        try {
+          FileInputStream fis = new FileInputStream(PMEM_FILE);
+          ObjectInputStream ois = new ObjectInputStream(fis);
+          backend = (ConcurrentHashMap<String, Map<String, String>>) ois.readObject();
+          ois.close();
+          fis.close();
+        } catch(Exception e) {
+          throw new DBException(e);
+        }
+      } else {
+        backend = new ConcurrentHashMap<>(initialCapacity);
+      }
+      INIT.arriveAndAwaitAdvance();
     }
   }
 
   @Override
   public void cleanup() throws DBException {
-    if (!dotransactions) {
-      try {
-        FileOutputStream fos = new FileOutputStream(PMEM_FILE);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(backend);
-        oos.close();
-        fos.close();
-      } catch(Exception e) {
-        throw new DBException(e);
+    int curInitCount = INIT_COUNT.decrementAndGet();
+    if (curInitCount > 0) {
+      INIT.awaitAdvance(1);
+    } else {
+      if (!dotransactions) {
+        try {
+          FileOutputStream fos = new FileOutputStream(PMEM_FILE);
+          ObjectOutputStream oos = new ObjectOutputStream(fos);
+          oos.writeObject(backend);
+          oos.close();
+          fos.close();
+        } catch(Exception e) {
+          throw new DBException(e);
+        }
       }
+      INIT.arriveAndAwaitAdvance();
     }
-
     super.cleanup();
   }
 

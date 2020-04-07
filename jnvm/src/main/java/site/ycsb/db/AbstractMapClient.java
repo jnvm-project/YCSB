@@ -45,10 +45,11 @@ public abstract class AbstractMapClient extends DB {
   protected static final long POOL_SIZE=4*1024*1024*1024L;
 
   protected PMemPool pmemPool;
-  protected Map<String, Map<String, String>> backend;
+  protected static Map<String, Map<String, String>> backend;
 
   protected int initialCapacity;
   protected boolean dotransactions;
+  protected int threadcount;
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
@@ -63,6 +64,8 @@ public abstract class AbstractMapClient extends DB {
         Integer.MAX_VALUE : (int) recordcount;
     dotransactions =
         Boolean.valueOf(props.getProperty(Client.DO_TRANSACTIONS_PROPERTY, String.valueOf(true)));
+    threadcount =
+        Integer.parseInt(props.getProperty(Client.THREAD_COUNT_PROPERTY, "1"));
   }
 
   /**
