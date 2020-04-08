@@ -180,9 +180,9 @@ public class DBWrapper extends DB {
       }
     }
     measurements.measure(measurementName,
-        (int) ((endTimeNanos - startTimeNanos) / 1000));
+        (endTimeNanos - startTimeNanos) / 1000);
     measurements.measureIntended(measurementName,
-        (int) ((endTimeNanos - intendedStartTimeNanos) / 1000));
+        (endTimeNanos - intendedStartTimeNanos) / 1000);
   }
 
   /**

@@ -97,7 +97,7 @@ public class OneMeasurementHdrHistogram extends OneMeasurement {
    * It appears latency is reported in micros.
    * Using {@link Recorder} to support concurrent updates to histogram.
    */
-  public void measure(int latencyInMicros) {
+  public void measure(long latencyInMicros) {
     histogram.recordValue(latencyInMicros);
   }
 
@@ -128,14 +128,9 @@ public class OneMeasurementHdrHistogram extends OneMeasurement {
     // also export totalHistogram
     if (verbose) {
       for (HistogramIterationValue v : totalHistogram.recordedValues()) {
-        int value;
-        if (v.getValueIteratedTo() > (long)Integer.MAX_VALUE) {
-          value = Integer.MAX_VALUE;
-        } else {
-          value = (int)v.getValueIteratedTo();
-        }
+        long value = v.getValueIteratedTo();
   
-        exporter.write(getName(), Integer.toString(value), (double)v.getCountAtValueIteratedTo());
+        exporter.write(getName(), Long.toString(value), (double)v.getCountAtValueIteratedTo());
       }
     }
   }
