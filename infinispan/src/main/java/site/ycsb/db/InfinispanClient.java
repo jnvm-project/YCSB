@@ -55,6 +55,7 @@ public class InfinispanClient extends DB {
   public void init() throws DBException {
     try {
       infinispanManager = new DefaultCacheManager("infinispan-config.xml");
+      infinispanManager.getCache().start(); //Eager cache entry loading
     } catch (IOException e) {
       throw new DBException(e);
     }

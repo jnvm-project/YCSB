@@ -25,7 +25,7 @@ LICENSE file.
       <local-cache name="usertable">
          <memory><object size="-1"/></memory>
          <persistence passivation="false">
-            <file-store fetch-state="true" read-only="false" purge="false" path="/pmem0/" />
+            <file-store fetch-state="true" preload="true" read-only="false" purge="false" path="/pmem0/" />
             <!--
             <store class="eu.telecomsudparis.jnvm.infinispan.persistence.JNVMStore" />
             -->
