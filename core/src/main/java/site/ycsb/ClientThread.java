@@ -88,6 +88,7 @@ public class ClientThread implements Runnable {
   @Override
   public void run() {
     try {
+      measurements.setIntendedStartTimeNs(0);
       db.init();
     } catch (DBException e) {
       e.printStackTrace();
