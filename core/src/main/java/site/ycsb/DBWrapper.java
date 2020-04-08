@@ -179,10 +179,8 @@ public class DBWrapper extends DB {
         measurementName = op + "-FAILED";
       }
     }
-    measurements.measure(measurementName,
-        (endTimeNanos - startTimeNanos) / 1000);
-    measurements.measureIntended(measurementName,
-        (endTimeNanos - intendedStartTimeNanos) / 1000);
+    measurements.measure(measurementName, endTimeNanos - startTimeNanos);
+    measurements.measureIntended(measurementName, endTimeNanos - intendedStartTimeNanos);
   }
 
   /**

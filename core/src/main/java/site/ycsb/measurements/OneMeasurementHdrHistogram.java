@@ -90,15 +90,15 @@ public class OneMeasurementHdrHistogram extends OneMeasurement {
       histogramLogWriter.setBaseTime(now);
       histogramLogWriter.outputLegend();
     }
-    histogram = new Recorder(3);
+    histogram = new Recorder(0);
   }
 
   /**
    * It appears latency is reported in micros.
    * Using {@link Recorder} to support concurrent updates to histogram.
    */
-  public void measure(long latencyInMicros) {
-    histogram.recordValue(latencyInMicros);
+  public void measure(long latencyInNanos) {
+    histogram.recordValue(latencyInNanos);
   }
 
   /**
@@ -114,12 +114,12 @@ public class OneMeasurementHdrHistogram extends OneMeasurement {
       log.close();
     }
     exporter.write(getName(), "Operations", totalHistogram.getTotalCount());
-    exporter.write(getName(), "AverageLatency(us)", totalHistogram.getMean());
-    exporter.write(getName(), "MinLatency(us)", totalHistogram.getMinValue());
-    exporter.write(getName(), "MaxLatency(us)", totalHistogram.getMaxValue());
+    exporter.write(getName(), "AverageLatency(ns)", totalHistogram.getMean());
+    exporter.write(getName(), "MinLatency(ns)", totalHistogram.getMinValue());
+    exporter.write(getName(), "MaxLatency(ns)", totalHistogram.getMaxValue());
 
     for (Double percentile : percentiles) {
-      exporter.write(getName(), ordinal(percentile) + "PercentileLatency(us)",
+      exporter.write(getName(), ordinal(percentile) + "PercentileLatency(ns)",
           totalHistogram.getValueAtPercentile(percentile));
     }
 

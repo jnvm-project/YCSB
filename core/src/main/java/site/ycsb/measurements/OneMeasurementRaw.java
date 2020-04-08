@@ -145,7 +145,7 @@ public class OneMeasurementRaw extends OneMeasurement {
     // stdout.
 
     outputStream.println(getName() +
-        " latency raw data: op, timestamp(ms), latency(us)");
+        " latency raw data: op, timestamp(ms), latency(ns)");
     for (RawDataPoint point : measurements) {
       outputStream.println(
           String.format("%s,%d,%d", getName(), point.timeStamp(),
@@ -159,7 +159,7 @@ public class OneMeasurementRaw extends OneMeasurement {
     exporter.write(getName(), "Total Operations", totalOps);
     if (totalOps > 0 && !noSummaryStats) {
       exporter.write(getName(),
-          "Below is a summary of latency in microseconds:", -1);
+          "Below is a summary of latency in nanoseconds:", -1);
       exporter.write(getName(), "Average",
           (double) totalLatency / (double) totalOps);
 
@@ -195,7 +195,7 @@ public class OneMeasurementRaw extends OneMeasurement {
       return "";
     }
 
-    String toReturn = String.format("%s count: %d, average latency(us): %.2f",
+    String toReturn = String.format("%s count: %d, average latency(ns): %.2f",
         getName(), windowOperations,
         (double) windowTotalLatency / (double) windowOperations);
 

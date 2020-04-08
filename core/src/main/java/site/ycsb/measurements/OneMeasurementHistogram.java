@@ -97,7 +97,7 @@ public class OneMeasurementHistogram extends OneMeasurement {
    */
   public synchronized void measure(long lat) {
     //latency reported in us and collected in bucket by ms.
-    int latency = (int) lat;
+    int latency = (int) (lat / 1000);
     if (latency / 1000 >= buckets) {
       histogramoverflow++;
     } else {

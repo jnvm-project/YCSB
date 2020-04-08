@@ -48,9 +48,9 @@ public class TwoInOneMeasurement extends OneMeasurement {
    * Using {@link org.HdrHistogram.Recorder} to support concurrent updates to histogram.
    */
   @Override
-  public void measure(long latencyInMicros) {
-    thing1.measure(latencyInMicros);
-    thing2.measure(latencyInMicros);
+  public void measure(long latencyInNanos) {
+    thing1.measure(latencyInNanos);
+    thing2.measure(latencyInNanos);
   }
 
   /**
