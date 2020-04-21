@@ -131,8 +131,8 @@ public class DBWrapper extends DB {
    * @param result A HashMap of field/value pairs for the result
    * @return The result of the operation.
    */
-  public Status read(String table, String key, Set<String> fields,
-                     Map<String, ByteIterator> result) {
+  public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
+                     Map<ByteIterator, ByteIterator> result) {
     try (final TraceScope span = tracer.newScope(scopeStringRead)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();
@@ -155,8 +155,8 @@ public class DBWrapper extends DB {
    * @param result A Vector of HashMaps, where each HashMap is a set field/value pairs for one record
    * @return The result of the operation.
    */
-  public Status scan(String table, String startkey, int recordcount,
-                     Set<String> fields, Vector<HashMap<String, ByteIterator>> result) {
+  public Status scan(ByteIterator table, ByteIterator startkey, int recordcount,
+                     Set<ByteIterator> fields, Vector<HashMap<ByteIterator, ByteIterator>> result) {
     try (final TraceScope span = tracer.newScope(scopeStringScan)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();
@@ -192,8 +192,8 @@ public class DBWrapper extends DB {
    * @param values A HashMap of field/value pairs to update in the record
    * @return The result of the operation.
    */
-  public Status update(String table, String key,
-                       Map<String, ByteIterator> values) {
+  public Status update(ByteIterator table, ByteIterator key,
+                       Map<ByteIterator, ByteIterator> values) {
     try (final TraceScope span = tracer.newScope(scopeStringUpdate)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();
@@ -215,8 +215,8 @@ public class DBWrapper extends DB {
    * @param values A HashMap of field/value pairs to insert in the record
    * @return The result of the operation.
    */
-  public Status insert(String table, String key,
-                       Map<String, ByteIterator> values) {
+  public Status insert(ByteIterator table, ByteIterator key,
+                       Map<ByteIterator, ByteIterator> values) {
     try (final TraceScope span = tracer.newScope(scopeStringInsert)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();
@@ -235,7 +235,7 @@ public class DBWrapper extends DB {
    * @param key The record key of the record to delete.
    * @return The result of the operation.
    */
-  public Status delete(String table, String key) {
+  public Status delete(ByteIterator table, ByteIterator key) {
     try (final TraceScope span = tracer.newScope(scopeStringDelete)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();
