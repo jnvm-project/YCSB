@@ -21,7 +21,6 @@ import site.ycsb.ByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
 import site.ycsb.Status;
-import site.ycsb.StringByteIterator;
 
 import org.infinispan.Cache;
 import org.infinispan.atomic.AtomicMap;
@@ -66,22 +65,26 @@ public class InfinispanClient extends DB {
     infinispanManager = null;
   }
 
-  public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
+  public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
+                     Map<ByteIterator, ByteIterator> result) {
+    String cacheName = table.toString();
     try {
-      Map<String, String> row;
+      Map<ByteIterator, ByteIterator> row;
       if (clustered) {
-        row = AtomicMapLookup.getAtomicMap(infinispanManager.getCache(table), key, false);
+        row = AtomicMapLookup.getAtomicMap(infinispanManager.getCache(cacheName), key, false);
       } else {
-        Cache<String, Map<String, String>> cache = infinispanManager.getCache(table);
+        Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
         row = cache.get(key);
       }
       if (row != null) {
         result.clear();
         if (fields == null || fields.isEmpty()) {
-          StringByteIterator.putAllAsByteIterators(result, row);
+          for(Map.Entry<ByteIterator, ByteIterator> value : row.entrySet()) {
+            result.put(value.getKey(), value.getValue());
+          }
         } else {
-          for (String field : fields) {
-            result.put(field, new StringByteIterator(row.get(field)));
+          for (ByteIterator field : fields) {
+            result.put(field, row.get(field));
           }
         }
       }
@@ -92,25 +95,34 @@ public class InfinispanClient extends DB {
     }
   }
 
-  public Status scan(String table, String startkey, int recordcount,
-      Set<String> fields, Vector<HashMap<String, ByteIterator>> result) {
+  public Status scan(ByteIterator table, ByteIterator startkey, int recordcount,
+      Set<ByteIterator> fields, Vector<HashMap<ByteIterator, ByteIterator>> result) {
     LOGGER.warn("Infinispan does not support scan semantics");
     return Status.OK;
   }
 
-  public Status update(String table, String key, Map<String, ByteIterator> values) {
+  public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    String cacheName = table.toString();
     try {
       if (clustered) {
-        AtomicMap<String, String> row = AtomicMapLookup.getAtomicMap(infinispanManager.getCache(table), key);
-        StringByteIterator.putAllAsStrings(row, values);
+        AtomicMap<ByteIterator, ByteIterator> row =
+                AtomicMapLookup.getAtomicMap(infinispanManager.getCache(cacheName), key);
+        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
+          row.put(value.getKey(), value.getValue());
+        }
       } else {
-        Cache<String, Map<String, String>> cache = infinispanManager.getCache(table);
-        Map<String, String> row = cache.get(key);
+        Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
+        Map<ByteIterator, ByteIterator> row = cache.get(key);
         if (row == null) {
-          row = StringByteIterator.getStringMap(values);
+          row = new HashMap<>();
+          for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
+            row.put(value.getKey(), value.getValue());
+          }
           cache.put(key, row);
         } else {
-          StringByteIterator.putAllAsStrings(row, values);
+          for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
+            row.put(value.getKey(), value.getValue());
+          }
         }
       }
 
@@ -121,16 +133,22 @@ public class InfinispanClient extends DB {
     }
   }
 
-  public Status insert(String table, String key, Map<String, ByteIterator> values) {
+  public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    String cacheName = table.toString();
     try {
       if (clustered) {
-        AtomicMap<String, String> row = AtomicMapLookup.getAtomicMap(infinispanManager.getCache(table), key);
+        AtomicMap<ByteIterator, ByteIterator> row =
+                AtomicMapLookup.getAtomicMap(infinispanManager.getCache(cacheName), key);
         row.clear();
-        StringByteIterator.putAllAsStrings(row, values);
+        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
+          row.put(value.getKey(), value.getValue());
+        }
       } else {
-        Map<String, String> row = new HashMap<>();
-        StringByteIterator.putAllAsStrings(row, values);
-        infinispanManager.getCache(table).put(key, row);
+        Map<ByteIterator, ByteIterator> row = new HashMap<>();
+        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
+          row.put(value.getKey(), value.getValue());
+        }
+        infinispanManager.getCache(cacheName).put(key, row);
       }
 
       return Status.OK;
@@ -140,12 +158,13 @@ public class InfinispanClient extends DB {
     }
   }
 
-  public Status delete(String table, String key) {
+  public Status delete(ByteIterator table, ByteIterator key) {
+    String cacheName = table.toString();
     try {
       if (clustered) {
-        AtomicMapLookup.removeAtomicMap(infinispanManager.getCache(table), key);
+        AtomicMapLookup.removeAtomicMap(infinispanManager.getCache(cacheName), key);
       } else {
-        infinispanManager.getCache(table).remove(key);
+        infinispanManager.getCache(cacheName).remove(key);
       }
       return Status.OK;
     } catch (Exception e) {
