@@ -133,6 +133,23 @@ public class StringByteIterator extends ByteIterator implements Serializable {
     }
   }
 
+  @Override
+  public int hashCode() {
+    return this.str.hashCode();
+  }
+
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    } else if (o == this) {
+      return true;
+    } else if (o instanceof StringByteIterator) {
+      StringByteIterator a = (StringByteIterator) o;
+      return this.str.equals(a.str);
+    }
+    return false;
+  }
+
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(this.str);
   }
