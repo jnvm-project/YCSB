@@ -79,9 +79,7 @@ public class InfinispanClient extends DB {
       if (row != null) {
         result.clear();
         if (fields == null || fields.isEmpty()) {
-          for(Map.Entry<ByteIterator, ByteIterator> value : row.entrySet()) {
-            result.put(value.getKey(), value.getValue());
-          }
+          result.putAll(row);
         } else {
           for (ByteIterator field : fields) {
             result.put(field, row.get(field));
@@ -107,22 +105,16 @@ public class InfinispanClient extends DB {
       if (clustered) {
         AtomicMap<ByteIterator, ByteIterator> row =
                 AtomicMapLookup.getAtomicMap(infinispanManager.getCache(cacheName), key);
-        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
-          row.put(value.getKey(), value.getValue());
-        }
+        row.putAll(values);
       } else {
         Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
         Map<ByteIterator, ByteIterator> row = cache.get(key);
         if (row == null) {
           row = new HashMap<>();
-          for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
-            row.put(value.getKey(), value.getValue());
-          }
+          row.putAll(values);
           cache.put(key, row);
         } else {
-          for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
-            row.put(value.getKey(), value.getValue());
-          }
+          row.putAll(values);
         }
       }
 
@@ -140,14 +132,10 @@ public class InfinispanClient extends DB {
         AtomicMap<ByteIterator, ByteIterator> row =
                 AtomicMapLookup.getAtomicMap(infinispanManager.getCache(cacheName), key);
         row.clear();
-        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
-          row.put(value.getKey(), value.getValue());
-        }
+        row.putAll(values);
       } else {
         Map<ByteIterator, ByteIterator> row = new HashMap<>();
-        for(Map.Entry<ByteIterator, ByteIterator> value : values.entrySet()) {
-          row.put(value.getKey(), value.getValue());
-        }
+        row.putAll(values);
         infinispanManager.getCache(cacheName).put(key, row);
       }
 
