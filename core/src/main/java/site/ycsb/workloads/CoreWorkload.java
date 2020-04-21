@@ -76,7 +76,7 @@ public class CoreWorkload extends Workload {
    */
   public static final String TABLENAME_PROPERTY_DEFAULT = "usertable";
 
-  protected String table;
+  protected ByteIterator table;
 
   /**
    * The name of the property for the number of fields in a record.
@@ -88,7 +88,7 @@ public class CoreWorkload extends Workload {
    */
   public static final String FIELD_COUNT_PROPERTY_DEFAULT = "10";
   
-  private List<String> fieldnames;
+  private List<ByteIterator> fieldnames;
 
   /**
    * The name of the property for the field length distribution. Options are "uniform", "zipfian"
@@ -392,14 +392,14 @@ public class CoreWorkload extends Workload {
    */
   @Override
   public void init(Properties p) throws WorkloadException {
-    table = p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT);
+    table = new StringByteIterator(p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT));
 
     fieldcount =
         Long.parseLong(p.getProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_PROPERTY_DEFAULT));
     final String fieldnameprefix = p.getProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
     fieldnames = new ArrayList<>();
     for (int i = 0; i < fieldcount; i++) {
-      fieldnames.add(fieldnameprefix + i);
+      fieldnames.add(new StringByteIterator(fieldnameprefix + i));
     }
     fieldlengthgenerator = CoreWorkload.getFieldLengthGenerator(p);
 
@@ -514,7 +514,7 @@ public class CoreWorkload extends Workload {
         INSERTION_RETRY_INTERVAL, INSERTION_RETRY_INTERVAL_DEFAULT));
   }
 
-  protected String buildKeyName(long keynum) {
+  protected ByteIterator buildKeyName(long keynum) {
     if (!orderedinserts) {
       keynum = Utils.hash(keynum);
     }
@@ -524,16 +524,16 @@ public class CoreWorkload extends Workload {
     for (int i = 0; i < fill; i++) {
       prekey += '0';
     }
-    return prekey + value;
+    return new StringByteIterator(prekey + value);
   }
 
   /**
    * Builds a value for a randomly chosen field.
    */
-  private HashMap<String, ByteIterator> buildSingleValue(String key) {
-    HashMap<String, ByteIterator> value = new HashMap<>();
+  private HashMap<ByteIterator, ByteIterator> buildSingleValue(ByteIterator key) {
+    HashMap<ByteIterator, ByteIterator> value = new HashMap<>();
 
-    String fieldkey = fieldnames.get(fieldchooser.nextValue().intValue());
+    ByteIterator fieldkey = fieldnames.get(fieldchooser.nextValue().intValue());
     ByteIterator data;
     if (dataintegrity) {
       data = new StringByteIterator(buildDeterministicValue(key, fieldkey));
@@ -549,10 +549,10 @@ public class CoreWorkload extends Workload {
   /**
    * Builds values for all fields.
    */
-  private HashMap<String, ByteIterator> buildValues(String key) {
-    HashMap<String, ByteIterator> values = new HashMap<>();
+  private HashMap<ByteIterator, ByteIterator> buildValues(ByteIterator key) {
+    HashMap<ByteIterator, ByteIterator> values = new HashMap<>();
 
-    for (String fieldkey : fieldnames) {
+    for (ByteIterator fieldkey : fieldnames) {
       ByteIterator data;
       if (dataintegrity) {
         data = new StringByteIterator(buildDeterministicValue(key, fieldkey));
@@ -568,12 +568,12 @@ public class CoreWorkload extends Workload {
   /**
    * Build a deterministic value given the key information.
    */
-  private String buildDeterministicValue(String key, String fieldkey) {
+  private String buildDeterministicValue(ByteIterator key, ByteIterator fieldkey) {
     int size = fieldlengthgenerator.nextValue().intValue();
     StringBuilder sb = new StringBuilder(size);
-    sb.append(key);
+    sb.append(key.toString());
     sb.append(':');
-    sb.append(fieldkey);
+    sb.append(fieldkey.toString());
     while (sb.length() < size) {
       sb.append(':');
       sb.append(sb.toString().hashCode());
@@ -592,8 +592,8 @@ public class CoreWorkload extends Workload {
   @Override
   public boolean doInsert(DB db, Object threadstate) {
     int keynum = keysequence.nextValue().intValue();
-    String dbkey = buildKeyName(keynum);
-    HashMap<String, ByteIterator> values = buildValues(dbkey);
+    ByteIterator dbkey = buildKeyName(keynum);
+    HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
 
     Status status;
     int numOfRetries = 0;
@@ -666,11 +666,11 @@ public class CoreWorkload extends Workload {
    * Bucket 1 means incorrect data was returned.
    * Bucket 2 means null data was returned when some data was expected.
    */
-  protected void verifyRow(String key, HashMap<String, ByteIterator> cells) {
+  protected void verifyRow(ByteIterator key, HashMap<ByteIterator, ByteIterator> cells) {
     Status verifyStatus = Status.OK;
     long startTime = System.nanoTime();
     if (!cells.isEmpty()) {
-      for (Map.Entry<String, ByteIterator> entry : cells.entrySet()) {
+      for (Map.Entry<ByteIterator, ByteIterator> entry : cells.entrySet()) {
         if (!entry.getValue().toString().equals(buildDeterministicValue(key, entry.getKey()))) {
           verifyStatus = Status.UNEXPECTED_STATE;
           break;
@@ -703,22 +703,22 @@ public class CoreWorkload extends Workload {
     // choose a random key
     long keynum = nextKeynum();
 
-    String keyname = buildKeyName(keynum);
+    ByteIterator keyname = buildKeyName(keynum);
 
-    HashSet<String> fields = null;
+    HashSet<ByteIterator> fields = null;
 
     if (!readallfields) {
       // read a random field
-      String fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
+      ByteIterator fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
 
-      fields = new HashSet<String>();
+      fields = new HashSet<ByteIterator>();
       fields.add(fieldname);
     } else if (dataintegrity) {
       // pass the full field list if dataintegrity is on for verification
-      fields = new HashSet<String>(fieldnames);
+      fields = new HashSet<ByteIterator>(fieldnames);
     }
 
-    HashMap<String, ByteIterator> cells = new HashMap<String, ByteIterator>();
+    HashMap<ByteIterator, ByteIterator> cells = new HashMap<ByteIterator, ByteIterator>();
     db.read(table, keyname, fields, cells);
 
     if (dataintegrity) {
@@ -730,19 +730,19 @@ public class CoreWorkload extends Workload {
     // choose a random key
     long keynum = nextKeynum();
 
-    String keyname = buildKeyName(keynum);
+    ByteIterator keyname = buildKeyName(keynum);
 
-    HashSet<String> fields = null;
+    HashSet<ByteIterator> fields = null;
 
     if (!readallfields) {
       // read a random field
-      String fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
+      ByteIterator fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
 
-      fields = new HashSet<String>();
+      fields = new HashSet<ByteIterator>();
       fields.add(fieldname);
     }
 
-    HashMap<String, ByteIterator> values;
+    HashMap<ByteIterator, ByteIterator> values;
 
     if (writeallfields) {
       // new data for all the fields
@@ -754,7 +754,7 @@ public class CoreWorkload extends Workload {
 
     // do the transaction
 
-    HashMap<String, ByteIterator> cells = new HashMap<String, ByteIterator>();
+    HashMap<ByteIterator, ByteIterator> cells = new HashMap<ByteIterator, ByteIterator>();
 
 
     long ist = measurements.getIntendedtartTimeNs();
@@ -777,31 +777,31 @@ public class CoreWorkload extends Workload {
     // choose a random key
     long keynum = nextKeynum();
 
-    String startkeyname = buildKeyName(keynum);
+    ByteIterator startkeyname = buildKeyName(keynum);
 
     // choose a random scan length
     int len = scanlength.nextValue().intValue();
 
-    HashSet<String> fields = null;
+    HashSet<ByteIterator> fields = null;
 
     if (!readallfields) {
       // read a random field
-      String fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
+      ByteIterator fieldname = fieldnames.get(fieldchooser.nextValue().intValue());
 
-      fields = new HashSet<String>();
+      fields = new HashSet<ByteIterator>();
       fields.add(fieldname);
     }
 
-    db.scan(table, startkeyname, len, fields, new Vector<HashMap<String, ByteIterator>>());
+    db.scan(table, startkeyname, len, fields, new Vector<HashMap<ByteIterator, ByteIterator>>());
   }
 
   public void doTransactionUpdate(DB db) {
     // choose a random key
     long keynum = nextKeynum();
 
-    String keyname = buildKeyName(keynum);
+    ByteIterator keyname = buildKeyName(keynum);
 
-    HashMap<String, ByteIterator> values;
+    HashMap<ByteIterator, ByteIterator> values;
 
     if (writeallfields) {
       // new data for all the fields
@@ -819,9 +819,9 @@ public class CoreWorkload extends Workload {
     long keynum = transactioninsertkeysequence.nextValue();
 
     try {
-      String dbkey = buildKeyName(keynum);
+      ByteIterator dbkey = buildKeyName(keynum);
 
-      HashMap<String, ByteIterator> values = buildValues(dbkey);
+      HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
       db.insert(table, dbkey, values);
     } finally {
       transactioninsertkeysequence.acknowledge(keynum);
