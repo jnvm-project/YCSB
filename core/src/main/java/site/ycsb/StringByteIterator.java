@@ -17,13 +17,17 @@
 
 package site.ycsb;
 
+import java.io.Serializable;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A ByteIterator that iterates through a string.
  */
-public class StringByteIterator extends ByteIterator {
+public class StringByteIterator extends ByteIterator implements Serializable {
   private String str;
   private int off;
 
@@ -128,4 +132,17 @@ public class StringByteIterator extends ByteIterator {
       return str;
     }
   }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.writeObject(this.str);
+  }
+  private void readObject(ObjectInputStream in) throws IOException {
+    try {
+      this.str = (String) in.readObject();
+      this.off = 0;
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+  }
+
 }
