@@ -186,6 +186,22 @@ public class CoreWorkload extends Workload {
   private boolean dataintegrity;
 
   /**
+   * The name of the property for deciding whether to use off-heap
+   * data (true) or on-heap data (false) for key, columns, and fields value.
+   */
+  public static final String OFFHEAP_PROPERTY = "offheap";
+
+  /**
+   * The default value for the offheap property.
+   */
+  public static final String OFFHEAP_PROPERTY_DEFAULT = "false";
+
+  /**
+   * Set to true if key, columns, field values should be allocated off-heap.
+   */
+  private boolean offheap;
+
+  /**
    * The name of the property for the proportion of transactions that are reads.
    */
   public static final String READ_PROPORTION_PROPERTY = "readproportion";
@@ -393,6 +409,9 @@ public class CoreWorkload extends Workload {
   @Override
   public void init(Properties p) throws WorkloadException {
     table = new StringByteIterator(p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT));
+
+    offheap = Boolean.parseBoolean(
+        p.getProperty(OFFHEAP_PROPERTY, OFFHEAP_PROPERTY_DEFAULT));
 
     fieldcount =
         Long.parseLong(p.getProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_PROPERTY_DEFAULT));
