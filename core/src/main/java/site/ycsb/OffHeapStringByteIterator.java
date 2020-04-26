@@ -15,9 +15,7 @@
  * LICENSE file.
  */
 
-package site.ycsb.db;
-
-import site.ycsb.ByteIterator;
+package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
 
