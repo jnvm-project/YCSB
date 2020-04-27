@@ -35,9 +35,9 @@ public class StringByteIterator extends ByteIterator implements Serializable {
    * Put all of the entries of one map into the other, converting
    * String values into ByteIterators.
    */
-  public static void putAllAsByteIterators(Map<String, ByteIterator> out, Map<String, String> in) {
+  public static void putAllAsByteIterators(Map<ByteIterator, ByteIterator> out, Map<String, String> in) {
     for (Map.Entry<String, String> entry : in.entrySet()) {
-      out.put(entry.getKey(), new StringByteIterator(entry.getValue()));
+      out.put(new StringByteIterator(entry.getKey()), new StringByteIterator(entry.getValue()));
     }
   }
 
@@ -45,9 +45,9 @@ public class StringByteIterator extends ByteIterator implements Serializable {
    * Put all of the entries of one map into the other, converting
    * ByteIterator values into Strings.
    */
-  public static void putAllAsStrings(Map<String, String> out, Map<String, ByteIterator> in) {
-    for (Map.Entry<String, ByteIterator> entry : in.entrySet()) {
-      out.put(entry.getKey(), entry.getValue().toString());
+  public static void putAllAsStrings(Map<String, String> out, Map<ByteIterator, ByteIterator> in) {
+    for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
+      out.put(entry.getKey().toString(), entry.getValue().toString());
     }
   }
 
@@ -55,12 +55,12 @@ public class StringByteIterator extends ByteIterator implements Serializable {
    * Create a copy of a map, converting the values from Strings to
    * StringByteIterators.
    */
-  public static Map<String, ByteIterator> getByteIteratorMap(Map<String, String> m) {
-    HashMap<String, ByteIterator> ret =
-        new HashMap<String, ByteIterator>();
+  public static Map<ByteIterator, ByteIterator> getByteIteratorMap(Map<String, String> m) {
+    HashMap<ByteIterator, ByteIterator> ret =
+        new HashMap<ByteIterator, ByteIterator>();
 
     for (Map.Entry<String, String> entry : m.entrySet()) {
-      ret.put(entry.getKey(), new StringByteIterator(entry.getValue()));
+      ret.put(new StringByteIterator(entry.getKey()), new StringByteIterator(entry.getValue()));
     }
     return ret;
   }
