@@ -418,7 +418,11 @@ public class CoreWorkload extends Workload {
     final String fieldnameprefix = p.getProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
     fieldnames = new ArrayList<>();
     for (int i = 0; i < fieldcount; i++) {
-      fieldnames.add(new StringByteIterator(fieldnameprefix + i));
+      if (offheap) {
+        fieldnames.add(new OffHeapStringByteIterator(fieldnameprefix + i));
+      } else {
+        fieldnames.add(new StringByteIterator(fieldnameprefix + i));
+      }
     }
     fieldlengthgenerator = CoreWorkload.getFieldLengthGenerator(p);
 
@@ -543,7 +547,8 @@ public class CoreWorkload extends Workload {
     for (int i = 0; i < fill; i++) {
       prekey += '0';
     }
-    return new StringByteIterator(prekey + value);
+    return (offheap) ? new OffHeapStringByteIterator(prekey + value)
+                     : new StringByteIterator(prekey + value);
   }
 
   /**
@@ -555,7 +560,8 @@ public class CoreWorkload extends Workload {
     ByteIterator fieldkey = fieldnames.get(fieldchooser.nextValue().intValue());
     ByteIterator data;
     if (dataintegrity) {
-      data = new StringByteIterator(buildDeterministicValue(key, fieldkey));
+      String val = buildDeterministicValue(key, fieldkey);
+      data = (offheap) ? new OffHeapStringByteIterator(val) : new StringByteIterator(val);
     } else {
       // fill with random data
       data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
@@ -574,7 +580,8 @@ public class CoreWorkload extends Workload {
     for (ByteIterator fieldkey : fieldnames) {
       ByteIterator data;
       if (dataintegrity) {
-        data = new StringByteIterator(buildDeterministicValue(key, fieldkey));
+        String val = buildDeterministicValue(key, fieldkey);
+        data = (offheap) ? new OffHeapStringByteIterator(val) : new StringByteIterator(val);
       } else {
         // fill with random data
         data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
