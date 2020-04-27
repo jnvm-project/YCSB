@@ -53,6 +53,11 @@ public class OffHeapStringByteIterator extends ByteIterator {
     this.off = 0;
   }
 
+  public OffHeapStringByteIterator(String s) {
+    this.str = new OffHeapString(s);
+    this.off = 0;
+  }
+
   @Override
   public boolean hasNext() {
     return off < str.length();
