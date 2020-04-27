@@ -33,9 +33,9 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
    * Put all of the entries of one map into the other, converting
    * String values into ByteIterators.
    */
-  public static void putAllAsByteIterators(Map<String, ByteIterator> out, Map<OffHeapString, OffHeapString> in) {
+  public static void putAllAsByteIterators(Map<ByteIterator, ByteIterator> out, Map<OffHeapString, OffHeapString> in) {
     for (Map.Entry<OffHeapString, OffHeapString> entry : in.entrySet()) {
-      out.put(entry.getKey().toString(), new OffHeapStringByteIterator(entry.getValue()));
+      out.put(new OffHeapStringByteIterator(entry.getKey()), new OffHeapStringByteIterator(entry.getValue()));
     }
   }
 
@@ -43,9 +43,9 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
    * Put all of the entries of one map into the other, converting
    * ByteIterator values into Strings.
    */
-  public static void putAllAsStrings(Map<OffHeapString, OffHeapString> out, Map<String, ByteIterator> in) {
-    for (Map.Entry<String, ByteIterator> entry : in.entrySet()) {
-      out.put(new OffHeapString(entry.getKey()), new OffHeapString(entry.getValue().toString()));
+  public static void putAllAsStrings(Map<OffHeapString, OffHeapString> out, Map<ByteIterator, ByteIterator> in) {
+    for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
+      out.put(entry.getKey().toOffHeapString(), entry.getValue().toOffHeapString());
     }
   }
 
