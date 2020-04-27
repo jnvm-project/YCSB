@@ -707,7 +707,7 @@ public class CoreWorkload extends Workload {
       verifyStatus = Status.ERROR;
     }
     long endTime = System.nanoTime();
-    measurements.measure("VERIFY", (int) (endTime - startTime) / 1000);
+    measurements.measure("VERIFY", endTime - startTime);
     measurements.reportStatus("VERIFY", verifyStatus);
   }
 
