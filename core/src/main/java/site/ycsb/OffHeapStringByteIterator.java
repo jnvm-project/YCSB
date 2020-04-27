@@ -114,6 +114,15 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
     return this.str.hashCode();
   }
 
+  @Override
+  public OffHeapString toOffHeapString() {
+    if (off > 0) {
+      return super.toOffHeapString();
+    } else {
+      return str;
+    }
+  }
+
   public boolean equals(Object o) {
     if (o == null) {
       return false;

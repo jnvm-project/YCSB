@@ -16,6 +16,8 @@
  */
 package site.ycsb;
 
+import eu.telecomsudparis.jnvm.offheap.OffHeapString;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -100,6 +102,12 @@ public abstract class ByteIterator implements Iterator<Byte> {
       ret[i] = nextByte();
     }
     return ret;
+  }
+
+  /** Consumes remaining contents of this object, and returns them as an offheap string. */
+  public OffHeapString toOffHeapString() {
+    //return new OffHeapString(this.toString());
+    throw new UnsupportedOperationException("Not implemented");
   }
 
 }
