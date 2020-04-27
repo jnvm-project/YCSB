@@ -97,11 +97,9 @@ public class InfinispanClient extends DB {
       Map<ByteIterator, ByteIterator> row = cache.get(key);
       if (row == null) {
         row = new HashMap<>();
-        row.putAll(values);
-        cache.put(key, row);
-      } else {
-        row.putAll(values);
       }
+      row.putAll(values);
+      cache.put(key, row); //always put back into the store, for the persistent layer to properly work
 
       return Status.OK;
     } catch (Exception e) {
