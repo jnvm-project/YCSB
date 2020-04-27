@@ -18,13 +18,14 @@
 package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
+import eu.telecomsudparis.jnvm.offheap.OffHeapObject;
 
 import java.util.Map;
 
 /**
  * A ByteIterator that iterates through a string.
  */
-public class OffHeapStringByteIterator extends ByteIterator {
+public class OffHeapStringByteIterator extends ByteIterator implements OffHeapObject {
   private OffHeapString str;
   private int off;
 
@@ -107,4 +108,31 @@ public class OffHeapStringByteIterator extends ByteIterator {
       return str.toString();
     }
   }
+
+  public long getOffset() {
+    return str.getOffset();
+  }
+  public void attach(long offset) {
+    str.attach(offset);
+  }
+  public void detach() {
+    str.detach();
+  }
+  public long size() {
+    return str.size();
+  }
+  public long classId() {
+    return str.classId();
+  }
+  public long length() {
+    return str.length();
+  }
+  public long addressFromFieldOffset(
+        long fieldOffset) {
+    return str.addressFromFieldOffset(fieldOffset);
+  }
+  public void destroy() {
+    str.destroy();
+  }
+
 }
