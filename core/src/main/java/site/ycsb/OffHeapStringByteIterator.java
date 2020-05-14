@@ -19,6 +19,8 @@ package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
 import eu.telecomsudparis.jnvm.offheap.OffHeapObject;
+import eu.telecomsudparis.jnvm.offheap.OffHeap;
+import eu.telecomsudparis.jnvm.offheap.MemoryBlockHandle;
 
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import java.util.Map;
  * A ByteIterator that iterates through a string.
  */
 public class OffHeapStringByteIterator extends ByteIterator implements OffHeapObject {
+  private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class);
   private OffHeapString str;
   private int off;
 
@@ -49,14 +52,30 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
     }
   }
 
+  public static void putAllAsOffHeapStringByteIterators(Map<OffHeapStringByteIterator, OffHeapStringByteIterator> out,
+                                                        Map<ByteIterator, ByteIterator> in) {
+    for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
+      out.put((OffHeapStringByteIterator) entry.getKey(), (OffHeapStringByteIterator) entry.getValue());
+    }
+  }
+
   public OffHeapStringByteIterator(OffHeapString s) {
     this.str = s;
     this.off = 0;
+    OffHeap.getAllocator().blockFromOffset(str.getOffset()).setKlass(CLASS_ID);
   }
 
   public OffHeapStringByteIterator(String s) {
-    this.str = new OffHeapString(s);
+    this(new OffHeapString(s));
+  }
+
+  public OffHeapStringByteIterator(long offset) {
+    this.str = new OffHeapString(offset);
     this.off = 0;
+  }
+
+  public OffHeapStringByteIterator(MemoryBlockHandle block) {
+    this(block.getOffset());
   }
 
   @Override
@@ -148,7 +167,7 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
     return str.size();
   }
   public long classId() {
-    return str.classId();
+    return CLASS_ID;
   }
   public long length() {
     return str.length();
