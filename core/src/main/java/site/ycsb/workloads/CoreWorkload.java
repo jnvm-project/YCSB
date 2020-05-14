@@ -692,7 +692,7 @@ public class CoreWorkload extends Workload {
    * Bucket 1 means incorrect data was returned.
    * Bucket 2 means null data was returned when some data was expected.
    */
-  protected void verifyRow(ByteIterator key, HashMap<ByteIterator, ByteIterator> cells) {
+  protected void verifyRow(ByteIterator key, Map<ByteIterator, ByteIterator> cells) {
     Status verifyStatus = Status.OK;
     long startTime = System.nanoTime();
     if (!cells.isEmpty()) {
