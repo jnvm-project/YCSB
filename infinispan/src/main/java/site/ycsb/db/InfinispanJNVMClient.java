@@ -52,7 +52,7 @@ public class InfinispanJNVMClient extends DB {
 
   public void init() throws DBException {
     try {
-      infinispanManager = new DefaultCacheManager("infinispan-config.xml");
+      infinispanManager = new DefaultCacheManager("infinispan-jnvm-config.xml");
       infinispanManager.getCache().start(); //Eager cache entry loading
     } catch (IOException e) {
       throw new DBException(e);
