@@ -22,6 +22,7 @@ import site.ycsb.measurements.Measurements;
 import org.apache.htrace.core.TraceScope;
 import org.apache.htrace.core.Tracer;
 
+import javax.xml.ws.Holder;
 import java.util.*;
 
 /**
@@ -132,7 +133,7 @@ public class DBWrapper extends DB {
    * @return The result of the operation.
    */
   public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
-                     Map<ByteIterator, ByteIterator> result) {
+                     Holder<Map<ByteIterator, ByteIterator>> result) {
     try (final TraceScope span = tracer.newScope(scopeStringRead)) {
       long ist = measurements.getIntendedtartTimeNs();
       long st = System.nanoTime();

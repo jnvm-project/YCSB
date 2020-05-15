@@ -23,6 +23,7 @@ import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.measurements.Measurements;
 
 import java.io.IOException;
+import javax.xml.ws.Holder;
 import java.util.*;
 
 /**
@@ -744,11 +745,12 @@ public class CoreWorkload extends Workload {
       fields = new HashSet<ByteIterator>(fieldnames);
     }
 
-    HashMap<ByteIterator, ByteIterator> cells = new HashMap<ByteIterator, ByteIterator>();
+    Holder<Map<ByteIterator, ByteIterator>> cells = new Holder<>();
+    cells.value = new HashMap<ByteIterator, ByteIterator>();
     db.read(table, keyname, fields, cells);
 
     if (dataintegrity) {
-      verifyRow(keyname, cells);
+      verifyRow(keyname, cells.value);
     }
   }
 
@@ -780,7 +782,8 @@ public class CoreWorkload extends Workload {
 
     // do the transaction
 
-    HashMap<ByteIterator, ByteIterator> cells = new HashMap<ByteIterator, ByteIterator>();
+    Holder<Map<ByteIterator, ByteIterator>> cells = new Holder<>();
+    cells.value = new HashMap<ByteIterator, ByteIterator>();
 
 
     long ist = measurements.getIntendedtartTimeNs();
@@ -792,7 +795,7 @@ public class CoreWorkload extends Workload {
     long en = System.nanoTime();
 
     if (dataintegrity) {
-      verifyRow(keyname, cells);
+      verifyRow(keyname, cells.value);
     }
 
     measurements.measure("READ-MODIFY-WRITE", (int) ((en - st) / 1000));

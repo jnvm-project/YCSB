@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import javax.xml.ws.Holder;
 
 /**
  * This is a client implementation for Infinispan 5.x.
@@ -64,12 +65,14 @@ public class InfinispanJNVMClient extends DB {
   }
 
   public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
-                     Map<ByteIterator, ByteIterator> result) {
+                     Holder<Map<ByteIterator, ByteIterator>> result) {
     String cacheName = table.toString();
     try {
       Map<ByteIterator, ByteIterator> row = null;
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
+      result.value = row;
+/*
       if (row != null) {
         result.clear();
         if (fields == null || fields.isEmpty()) {
@@ -80,6 +83,7 @@ public class InfinispanJNVMClient extends DB {
           }
         }
       }
+*/
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);

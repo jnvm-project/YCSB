@@ -23,6 +23,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.xml.ws.Holder;
+
 /**
  * A layer for accessing a database to be benchmarked. Each thread in the client
  * will be given its own instance of whatever DB class is to be used in the test.
@@ -87,7 +89,7 @@ public abstract class DB {
    * @return The result of the operation.
    */
   public abstract Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
-                              Map<ByteIterator, ByteIterator> result);
+                              Holder<Map<ByteIterator, ByteIterator>> result);
 
   /**
    * Perform a range scan for a set of records in the database. Each field/value pair from the result will be stored
