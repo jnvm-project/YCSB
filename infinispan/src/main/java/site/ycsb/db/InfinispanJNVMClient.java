@@ -88,19 +88,10 @@ public class InfinispanJNVMClient extends DB {
       Map<ByteIterator, ByteIterator> row = null;
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
-      result.value = row;
-/*
-      if (row != null) {
-        result.clear();
-        if (fields == null || fields.isEmpty()) {
-          result.putAll(row);
-        } else {
-          for (ByteIterator field : fields) {
-            result.put(field, row.get(field));
-          }
-        }
+      if (row == null) {
+        return Status.ERROR;
       }
-*/
+      result.value = row;
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
@@ -122,9 +113,7 @@ public class InfinispanJNVMClient extends DB {
           infinispanManager.getCache(cacheName);
       row = cache.get(key);
       if (row == null) {
-        row = new RecoverableHashMap<>(values.size());
-        OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
-        cache.put(key, row);
+        return Status.ERROR;
       } else {
         OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
       }
