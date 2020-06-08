@@ -539,6 +539,10 @@ public class CoreWorkload extends Workload {
   }
 
   protected ByteIterator buildKeyName(long keynum) {
+    return buildKeyName(keynum, false);
+  }
+
+  protected ByteIterator buildKeyName(long keynum, boolean offHeap) {
     if (!orderedinserts) {
       keynum = Utils.hash(keynum);
     }
@@ -548,7 +552,7 @@ public class CoreWorkload extends Workload {
     for (int i = 0; i < fill; i++) {
       prekey += '0';
     }
-    return (offheap) ? new OffHeapStringByteIterator(prekey + value)
+    return (offHeap) ? new OffHeapStringByteIterator(prekey + value)
                      : new StringByteIterator(prekey + value);
   }
 
@@ -619,7 +623,7 @@ public class CoreWorkload extends Workload {
   @Override
   public boolean doInsert(DB db, Object threadstate) {
     int keynum = keysequence.nextValue().intValue();
-    ByteIterator dbkey = buildKeyName(keynum);
+    ByteIterator dbkey = buildKeyName(keynum, offheap);
     HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
 
     Status status;
@@ -848,7 +852,7 @@ public class CoreWorkload extends Workload {
     long keynum = transactioninsertkeysequence.nextValue();
 
     try {
-      ByteIterator dbkey = buildKeyName(keynum);
+      ByteIterator dbkey = buildKeyName(keynum, offheap);
 
       HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
       db.insert(table, dbkey, values);
