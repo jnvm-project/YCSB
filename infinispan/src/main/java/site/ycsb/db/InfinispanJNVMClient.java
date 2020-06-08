@@ -38,30 +38,47 @@ import java.util.Set;
 import java.util.Vector;
 import javax.xml.ws.Holder;
 
+import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * This is a client implementation for Infinispan 5.x.
  */
 public class InfinispanJNVMClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanJNVMClient.class);
 
+  private static EmbeddedCacheManager infinispanManager;
 
-  private EmbeddedCacheManager infinispanManager;
+  private static final Phaser INIT = new Phaser(1);
+  private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
 
   public InfinispanJNVMClient() {
   }
 
   public void init() throws DBException {
     try {
-      infinispanManager = new DefaultCacheManager("infinispan-jnvm-config.xml");
-      infinispanManager.getCache().start(); //Eager cache entry loading
+      int curInitCount = INIT_COUNT.getAndIncrement();
+      if (curInitCount > 0) {
+        INIT.awaitAdvance(0);
+      } else {
+        infinispanManager = new DefaultCacheManager("infinispan-jnvm-config.xml");
+        infinispanManager.getCache().start(); //Eager cache entry loading
+        INIT.arriveAndAwaitAdvance();
+      }
     } catch (IOException e) {
       throw new DBException(e);
     }
   }
 
   public void cleanup() {
-    infinispanManager.stop();
-    infinispanManager = null;
+    int curInitCount = INIT_COUNT.decrementAndGet();
+    if (curInitCount > 0) {
+      INIT.awaitAdvance(1);
+    } else {
+      infinispanManager.stop();
+      infinispanManager = null;
+      INIT.arriveAndAwaitAdvance();
+    }
   }
 
   public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
