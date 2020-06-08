@@ -150,6 +150,9 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
     } else if (o instanceof OffHeapStringByteIterator) {
       OffHeapStringByteIterator a = (OffHeapStringByteIterator) o;
       return this.str.equals(a.str);
+    } else if (o instanceof StringByteIterator) {
+      StringByteIterator a = (StringByteIterator) o;
+      return this.str.equals(a.toString());
     }
     return false;
   }

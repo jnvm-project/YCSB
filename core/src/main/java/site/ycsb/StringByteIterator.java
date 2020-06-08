@@ -146,6 +146,9 @@ public class StringByteIterator extends ByteIterator implements Serializable {
     } else if (o instanceof StringByteIterator) {
       StringByteIterator a = (StringByteIterator) o;
       return this.str.equals(a.str);
+    } else if (o instanceof OffHeapStringByteIterator) {
+      OffHeapStringByteIterator a = (OffHeapStringByteIterator) o;
+      return a.toString().equals(this.str);
     }
     return false;
   }
