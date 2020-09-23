@@ -28,7 +28,7 @@ import java.util.Map;
  * A ByteIterator that iterates through a string.
  */
 public class OffHeapStringByteIterator extends ByteIterator implements OffHeapObject {
-  private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class);
+  private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class, 8L);
   private OffHeapString str;
   private int off;
 
