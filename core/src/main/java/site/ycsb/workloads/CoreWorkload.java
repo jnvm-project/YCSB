@@ -802,8 +802,8 @@ public class CoreWorkload extends Workload {
       verifyRow(keyname, cells.value);
     }
 
-    measurements.measure("READ-MODIFY-WRITE", (int) ((en - st) / 1000));
-    measurements.measureIntended("READ-MODIFY-WRITE", (int) ((en - ist) / 1000));
+    measurements.measure("READ-MODIFY-WRITE", en - st);
+    measurements.measureIntended("READ-MODIFY-WRITE", en - ist);
   }
 
   public void doTransactionScan(DB db) {
