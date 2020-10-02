@@ -754,7 +754,7 @@ public class CoreWorkload extends Workload {
     db.read(table, keyname, fields, cells);
 
     if (dataintegrity) {
-      verifyRow(keyname, cells.value);
+      //verifyRow(keyname, cells.value);
     }
   }
 
@@ -799,7 +799,7 @@ public class CoreWorkload extends Workload {
     long en = System.nanoTime();
 
     if (dataintegrity) {
-      verifyRow(keyname, cells.value);
+      //verifyRow(keyname, cells.value);
     }
 
     measurements.measure("READ-MODIFY-WRITE", en - st);
