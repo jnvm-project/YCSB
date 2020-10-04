@@ -73,9 +73,9 @@ public class InfinispanClient extends DB {
       INIT.awaitAdvance(1);
     } else {
       infinispanManager.stop();
+      infinispanManager = null;
       INIT.arriveAndAwaitAdvance();
     }
-    infinispanManager = null;
   }
 
   public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
@@ -85,6 +85,9 @@ public class InfinispanClient extends DB {
       Map<ByteIterator, ByteIterator> row;
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
+      if (row == null) {
+        return Status.ERROR;
+      }
       result.value = row;
 /*
       if (row != null) {
