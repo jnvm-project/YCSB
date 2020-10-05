@@ -17,15 +17,23 @@
 
 package site.ycsb;
 
+import lib.util.persistent.Transaction;
 import lib.util.persistent.PersistentString;
+import lib.util.persistent.PersistentObject;
+import lib.util.persistent.ObjectPointer;
+import lib.util.persistent.types.ObjectField;
+import lib.util.persistent.types.ObjectType;
 
 import java.util.Map;
 
 /**
  * A ByteIterator that iterates through a string.
  */
-public class PersistentStringByteIterator implements ByteIterator {
-  private PersistentString str;
+public class PersistentStringByteIterator extends PersistentObject implements ByteIterator {
+  private static final ObjectField<PersistentString> STR = new ObjectField<>(PersistentString.class);
+  private static final ObjectType<PersistentStringByteIterator> TYPE =
+      ObjectType.withFields(PersistentStringByteIterator.class, STR);
+
   private int off;
 
   /**
@@ -59,29 +67,45 @@ public class PersistentStringByteIterator implements ByteIterator {
   }
 
   public PersistentStringByteIterator(PersistentString s) {
-    this.str = s;
+    super(TYPE);
     this.off = 0;
+    Transaction.run(() -> {
+        setObjectField(STR, s);
+      }
+    );
   }
 
   public PersistentStringByteIterator(String s) {
     this(PersistentString.make(s));
   }
 
+  public PersistentStringByteIterator(ObjectType<? extends PersistentStringByteIterator> type) {
+    super(type);
+  }
+
+  public PersistentStringByteIterator(ObjectPointer<? extends PersistentStringByteIterator> p) {
+    super(p);
+  }
+
+  public PersistentString str() {
+    return getObjectField(STR);
+  }
+
   @Override
   public boolean hasNext() {
-    return off < str.length();
+    return off < this.str().length();
   }
 
   @Override
   public byte nextByte() {
-    byte ret = (byte) str.toString().charAt(off);
+    byte ret = (byte) this.str().toString().charAt(off);
     off++;
     return ret;
   }
 
   @Override
   public long bytesLeft() {
-    return str.length() - off;
+    return this.str().length() - off;
   }
 
   @Override
@@ -93,9 +117,9 @@ public class PersistentStringByteIterator implements ByteIterator {
   public byte[] toArray() {
     byte[] bytes = new byte[(int) bytesLeft()];
     for (int i = 0; i < bytes.length; i++) {
-      bytes[i] = (byte) str.toString().charAt(off + i);
+      bytes[i] = (byte) this.str().toString().charAt(off + i);
     }
-    off = (int) str.length();
+    off = (int) this.str().length();
     return bytes;
   }
 
@@ -113,13 +137,13 @@ public class PersistentStringByteIterator implements ByteIterator {
     if (off > 0) {
       return ByteIterator.super.toString1();
     } else {
-      return str.toString();
+      return this.str().toString();
     }
   }
 
   @Override
   public int hashCode() {
-    return this.str.hashCode();
+    return this.str().hashCode();
   }
 
   @Override
@@ -127,7 +151,7 @@ public class PersistentStringByteIterator implements ByteIterator {
     if (off > 0) {
       return ByteIterator.super.toPersistentString();
     } else {
-      return str;
+      return this.str();
     }
   }
 
@@ -138,10 +162,10 @@ public class PersistentStringByteIterator implements ByteIterator {
       return true;
     } else if (o instanceof PersistentStringByteIterator) {
       PersistentStringByteIterator a = (PersistentStringByteIterator) o;
-      return this.str.equals(a.str);
+      return this.str().equals(a.str());
     } else if (o instanceof StringByteIterator) {
       StringByteIterator a = (StringByteIterator) o;
-      return this.str.equals(a.toString());
+      return this.str().equals(a.toString());
     }
     return false;
   }
