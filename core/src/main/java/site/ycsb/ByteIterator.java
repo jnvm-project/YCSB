@@ -17,6 +17,7 @@
 package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
+import lib.util.persistent.PersistentString;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -106,6 +107,12 @@ public abstract class ByteIterator implements Iterator<Byte> {
 
   /** Consumes remaining contents of this object, and returns them as an offheap string. */
   public OffHeapString toOffHeapString() {
+    //return new OffHeapString(this.toString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  /** Consumes remaining contents of this object, and returns them as an pcj string. */
+  public PersistentString toPersistentString() {
     //return new OffHeapString(this.toString());
     throw new UnsupportedOperationException("Not implemented");
   }
