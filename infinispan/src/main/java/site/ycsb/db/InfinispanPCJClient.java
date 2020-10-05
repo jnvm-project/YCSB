@@ -17,7 +17,7 @@
 
 package site.ycsb.db;
 
-import site.ycsb.StringByteIterator;
+import site.ycsb.PersistentStringByteIterator;
 import site.ycsb.ByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
@@ -89,14 +89,14 @@ public class InfinispanPCJClient extends DB {
       PersistentHashMap<PersistentString, PersistentString> row = null;
       Cache<PersistentString, PersistentHashMap<PersistentString, PersistentString>> cache =
           infinispanManager.getCache(cacheName);
-      row = cache.get(PersistentString.make(key.toString()));
+      row = cache.get(key.toPersistentString());
       if (row == null) {
         return Status.ERROR;
       }
       result.value = new HashMap<ByteIterator, ByteIterator>();
       for (Map.Entry<PersistentString, PersistentString> e : row.entrySet()) {
-        result.value.put(new StringByteIterator(e.getKey().toString()),
-                         new StringByteIterator(e.getValue().toString()));
+        result.value.put(new PersistentStringByteIterator(e.getKey()),
+                         new PersistentStringByteIterator(e.getValue()));
       }
 
 /*
@@ -130,13 +130,13 @@ public class InfinispanPCJClient extends DB {
       PersistentHashMap<PersistentString, PersistentString> row = null;
       Cache<PersistentString, PersistentHashMap<PersistentString, PersistentString>> cache =
           infinispanManager.getCache(cacheName);
-      row = cache.get(PersistentString.make(key.toString()));
+      row = cache.get(key.toPersistentString());
       if (row == null) {
         return Status.ERROR;
       } else {
         for (Map.Entry<ByteIterator, ByteIterator> e : values.entrySet()) {
-          row.put(PersistentString.make(e.getKey().toString()),
-                  PersistentString.make(e.getValue().toString()));
+          row.put(e.getKey().toPersistentString(),
+                  e.getValue().toPersistentString());
         }
       }
 
@@ -150,13 +150,14 @@ public class InfinispanPCJClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      PersistentHashMap<PersistentString, PersistentString> row = new PersistentHashMap<>();
+      PersistentHashMap<PersistentString, PersistentString> row =
+          new PersistentHashMap<>();
       for (Map.Entry<ByteIterator, ByteIterator> e : values.entrySet()) {
-        row.put(PersistentString.make(e.getKey().toString()),
-                PersistentString.make(e.getValue().toString()));
+        row.put(e.getKey().toPersistentString(),
+                e.getValue().toPersistentString());
       }
       //row.putAll(values);
-      infinispanManager.getCache(cacheName).put(PersistentString.make(key.toString()), row);
+      infinispanManager.getCache(cacheName).put(key.toPersistentString(), row);
 
       return Status.OK;
     } catch (Exception e) {
@@ -168,7 +169,7 @@ public class InfinispanPCJClient extends DB {
   public Status delete(ByteIterator table, ByteIterator key) {
     String cacheName = table.toString();
     try {
-      infinispanManager.getCache(cacheName).remove(key);
+      infinispanManager.getCache(cacheName).remove(key.toPersistentString());
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
