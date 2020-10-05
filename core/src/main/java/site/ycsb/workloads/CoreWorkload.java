@@ -203,6 +203,22 @@ public class CoreWorkload extends Workload {
   private boolean offheap;
 
   /**
+   * The name of the property for deciding whether to use pcj data types
+   * for key, columns, and fields value.
+   */
+  public static final String PCJ_PROPERTY = "pcj";
+
+  /**
+   * The default value for the pcj property.
+   */
+  public static final String PCJ_PROPERTY_DEFAULT = "false";
+
+  /**
+   * Set to true if key, columns, field values should be use pcj types.
+   */
+  private boolean pcj;
+
+  /**
    * The name of the property for the proportion of transactions that are reads.
    */
   public static final String READ_PROPORTION_PROPERTY = "readproportion";
@@ -413,6 +429,8 @@ public class CoreWorkload extends Workload {
 
     offheap = Boolean.parseBoolean(
         p.getProperty(OFFHEAP_PROPERTY, OFFHEAP_PROPERTY_DEFAULT));
+    pcj = Boolean.parseBoolean(
+        p.getProperty(PCJ_PROPERTY, PCJ_PROPERTY_DEFAULT));
 
     fieldcount =
         Long.parseLong(p.getProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_PROPERTY_DEFAULT));
@@ -421,6 +439,8 @@ public class CoreWorkload extends Workload {
     for (int i = 0; i < fieldcount; i++) {
       if (offheap) {
         fieldnames.add(new OffHeapStringByteIterator(fieldnameprefix + i));
+      } else if (pcj) {
+        fieldnames.add(new PersistentStringByteIterator(fieldnameprefix + i));
       } else {
         fieldnames.add(new StringByteIterator(fieldnameprefix + i));
       }
@@ -539,10 +559,10 @@ public class CoreWorkload extends Workload {
   }
 
   protected ByteIterator buildKeyName(long keynum) {
-    return buildKeyName(keynum, false);
+    return buildKeyName(keynum, false, false);
   }
 
-  protected ByteIterator buildKeyName(long keynum, boolean offHeap) {
+  protected ByteIterator buildKeyName(long keynum, boolean offHeap, boolean pcJ) {
     if (!orderedinserts) {
       keynum = Utils.hash(keynum);
     }
@@ -553,7 +573,8 @@ public class CoreWorkload extends Workload {
       prekey += '0';
     }
     return (offHeap) ? new OffHeapStringByteIterator(prekey + value)
-                     : new StringByteIterator(prekey + value);
+           : (pcj) ? new PersistentStringByteIterator(prekey + value)
+           : new StringByteIterator(prekey + value);
   }
 
   /**
@@ -566,7 +587,9 @@ public class CoreWorkload extends Workload {
     ByteIterator data;
     if (dataintegrity) {
       String val = buildDeterministicValue(key, fieldkey);
-      data = (offheap) ? new OffHeapStringByteIterator(val) : new StringByteIterator(val);
+      data = (offheap) ? new OffHeapStringByteIterator(val)
+             : (pcj) ? new PersistentStringByteIterator(val)
+             : new StringByteIterator(val);
     } else {
       // fill with random data
       data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
@@ -586,7 +609,9 @@ public class CoreWorkload extends Workload {
       ByteIterator data;
       if (dataintegrity) {
         String val = buildDeterministicValue(key, fieldkey);
-        data = (offheap) ? new OffHeapStringByteIterator(val) : new StringByteIterator(val);
+        data = (offheap) ? new OffHeapStringByteIterator(val)
+             : (pcj) ? new PersistentStringByteIterator(val)
+             : new StringByteIterator(val);
       } else {
         // fill with random data
         data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
@@ -623,7 +648,7 @@ public class CoreWorkload extends Workload {
   @Override
   public boolean doInsert(DB db, Object threadstate) {
     int keynum = keysequence.nextValue().intValue();
-    ByteIterator dbkey = buildKeyName(keynum, offheap);
+    ByteIterator dbkey = buildKeyName(keynum, offheap, pcj);
     HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
 
     Status status;
@@ -852,7 +877,7 @@ public class CoreWorkload extends Workload {
     long keynum = transactioninsertkeysequence.nextValue();
 
     try {
-      ByteIterator dbkey = buildKeyName(keynum, offheap);
+      ByteIterator dbkey = buildKeyName(keynum, offheap, pcj);
 
       HashMap<ByteIterator, ByteIterator> values = buildValues(dbkey);
       db.insert(table, dbkey, values);
