@@ -16,6 +16,9 @@
  */
 package site.ycsb;
 
+import lib.util.persistent.PersistentString;
+import eu.telecomsudparis.jnvm.offheap.OffHeapString;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -113,6 +116,16 @@ public class RandomByteIterator implements ByteIterator {
       bufOffset = nextBuf(ret, bufOffset);
     }
     return ret;
+  }
+
+  @Override
+  public OffHeapString toOffHeapString() {
+    return new OffHeapString(this.toString());
+  }
+
+  @Override
+  public PersistentString toPersistentString() {
+    return PersistentString.make(this.toString());
   }
 
   @Override
