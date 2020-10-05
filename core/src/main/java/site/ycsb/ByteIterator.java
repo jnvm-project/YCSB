@@ -47,20 +47,20 @@ import java.util.Iterator;
  * Map&lt;String,ByteBuffer&gt;.
  *
  */
-public abstract class ByteIterator implements Iterator<Byte> {
+public interface ByteIterator extends Iterator<Byte> {
 
   @Override
-  public abstract boolean hasNext();
+  boolean hasNext();
 
   @Override
-  public Byte next() {
+  default Byte next() {
     throw new UnsupportedOperationException();
   }
 
-  public abstract byte nextByte();
+  byte nextByte();
 
   /** @return byte offset immediately after the last valid byte */
-  public int nextBuf(byte[] buf, int bufOff) {
+  default int nextBuf(byte[] buf, int bufOff) {
     int sz = bufOff;
     while (sz < buf.length && hasNext()) {
       buf[sz] = nextByte();
@@ -69,10 +69,10 @@ public abstract class ByteIterator implements Iterator<Byte> {
     return sz;
   }
 
-  public abstract long bytesLeft();
+  long bytesLeft();
 
   @Override
-  public void remove() {
+  default void remove() {
     throw new UnsupportedOperationException();
   }
 
@@ -81,19 +81,19 @@ public abstract class ByteIterator implements Iterator<Byte> {
    * @throws UnsupportedOperationException if the implementation hasn't implemented
    * the method.
    */
-  public void reset() {
+  default void reset() {
     throw new UnsupportedOperationException();
   }
   
   /** Consumes remaining contents of this object, and returns them as a string. */
-  public String toString() {
+  default String toString1() {
     Charset cset = Charset.forName("UTF-8");
     CharBuffer cb = cset.decode(ByteBuffer.wrap(this.toArray()));
     return cb.toString();
   }
 
   /** Consumes remaining contents of this object, and returns them as a byte array. */
-  public byte[] toArray() {
+  default byte[] toArray() {
     long left = bytesLeft();
     if (left != (int) left) {
       throw new ArrayIndexOutOfBoundsException("Too much data to fit in one array!");
@@ -106,14 +106,14 @@ public abstract class ByteIterator implements Iterator<Byte> {
   }
 
   /** Consumes remaining contents of this object, and returns them as an offheap string. */
-  public OffHeapString toOffHeapString() {
+  default OffHeapString toOffHeapString() {
     //return new OffHeapString(this.toString());
     throw new UnsupportedOperationException("Not implemented");
   }
 
   /** Consumes remaining contents of this object, and returns them as an pcj string. */
-  public PersistentString toPersistentString() {
-    //return new OffHeapString(this.toString());
+  default PersistentString toPersistentString() {
+    //return new PersistentString(this.toString());
     throw new UnsupportedOperationException("Not implemented");
   }
 

@@ -21,7 +21,7 @@ package site.ycsb;
  * Currently this iterator can handle 64 bit signed values and double precision
  * floating point values.
  */
-public class NumericByteIterator extends ByteIterator {
+public class NumericByteIterator implements ByteIterator {
   private final byte[] payload;
   private final boolean floatingPoint;
   private int off;
@@ -74,6 +74,11 @@ public class NumericByteIterator extends ByteIterator {
 
   public boolean isFloatingPoint() {
     return floatingPoint;
+  }
+
+  @Override
+  public String toString() {
+    return ByteIterator.super.toString1();
   }
 
 }

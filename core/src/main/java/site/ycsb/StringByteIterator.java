@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * A ByteIterator that iterates through a string.
  */
-public class StringByteIterator extends ByteIterator implements Serializable {
+public class StringByteIterator implements ByteIterator, Serializable {
   private String str;
   private int off;
 
@@ -127,7 +127,7 @@ public class StringByteIterator extends ByteIterator implements Serializable {
   @Override
   public String toString() {
     if (off > 0) {
-      return super.toString();
+      return ByteIterator.super.toString1();
     } else {
       return str;
     }

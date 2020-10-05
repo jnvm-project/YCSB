@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  *  A ByteIterator that generates a random sequence of bytes.
  */
-public class RandomByteIterator extends ByteIterator {
+public class RandomByteIterator implements ByteIterator {
   private final long len;
   private long off;
   private int bufOff;
@@ -113,6 +113,11 @@ public class RandomByteIterator extends ByteIterator {
       bufOffset = nextBuf(ret, bufOffset);
     }
     return ret;
+  }
+
+  @Override
+  public String toString() {
+    return ByteIterator.super.toString1();
   }
 
 }

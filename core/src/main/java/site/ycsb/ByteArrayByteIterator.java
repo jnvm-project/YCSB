@@ -19,7 +19,7 @@ package site.ycsb;
 /**
  *  A ByteIterator that iterates through a byte array.
  */
-public class ByteArrayByteIterator extends ByteIterator {
+public class ByteArrayByteIterator implements ByteIterator {
   private final int originalOffset;
   private final byte[] str;
   private int off;
@@ -68,6 +68,11 @@ public class ByteArrayByteIterator extends ByteIterator {
     System.arraycopy(str, off, bytes, 0, size);
     off = len;
     return bytes;
+  }
+
+  @Override
+  public String toString() {
+    return ByteIterator.super.toString1();
   }
 
 }

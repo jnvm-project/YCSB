@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * A ByteIterator that iterates through a string.
  */
-public class OffHeapStringByteIterator extends ByteIterator implements OffHeapObject {
+public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
   private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class, 8L);
   private OffHeapString str;
   private int off;
@@ -122,7 +122,7 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
   @Override
   public String toString() {
     if (off > 0) {
-      return super.toString();
+      return ByteIterator.super.toString1();
     } else {
       return str.toString();
     }
@@ -136,7 +136,7 @@ public class OffHeapStringByteIterator extends ByteIterator implements OffHeapOb
   @Override
   public OffHeapString toOffHeapString() {
     if (off > 0) {
-      return super.toOffHeapString();
+      return ByteIterator.super.toOffHeapString();
     } else {
       return str;
     }

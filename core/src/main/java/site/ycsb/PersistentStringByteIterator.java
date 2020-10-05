@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A ByteIterator that iterates through a string.
  */
-public class PersistentStringByteIterator extends ByteIterator {
+public class PersistentStringByteIterator implements ByteIterator {
   private PersistentString str;
   private int off;
 
@@ -111,7 +111,7 @@ public class PersistentStringByteIterator extends ByteIterator {
   @Override
   public String toString() {
     if (off > 0) {
-      return super.toString();
+      return ByteIterator.super.toString1();
     } else {
       return str.toString();
     }
@@ -125,7 +125,7 @@ public class PersistentStringByteIterator extends ByteIterator {
   @Override
   public PersistentString toPersistentString() {
     if (off > 0) {
-      return super.toPersistentString();
+      return ByteIterator.super.toPersistentString();
     } else {
       return str;
     }

@@ -22,7 +22,7 @@ import java.io.InputStream;
 /**
  *  A ByteIterator that iterates through an inputstream of bytes.
  */
-public class InputStreamByteIterator extends ByteIterator {
+public class InputStreamByteIterator implements ByteIterator {
   private final long len;
   private final InputStream ins;
   private long off;
@@ -91,6 +91,11 @@ public class InputStreamByteIterator extends ByteIterator {
     } else {
       throw new UnsupportedOperationException();
     }
+  }
+
+  @Override
+  public String toString() {
+    return ByteIterator.super.toString1();
   }
   
 }
