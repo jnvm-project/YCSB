@@ -55,7 +55,7 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
   public static void putAllAsOffHeapStringByteIterators(Map<OffHeapStringByteIterator, OffHeapStringByteIterator> out,
                                                         Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
-      out.put((OffHeapStringByteIterator) entry.getKey(), (OffHeapStringByteIterator) entry.getValue());
+      out.put(entry.getKey().toOffHeapStringByteIterator(), entry.getValue().toOffHeapStringByteIterator());
     }
   }
 
@@ -140,6 +140,11 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
     } else {
       return str;
     }
+  }
+
+  @Override
+  public OffHeapStringByteIterator toOffHeapStringByteIterator() {
+    return this;
   }
 
   public boolean equals(Object o) {

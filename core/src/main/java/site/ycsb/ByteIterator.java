@@ -111,9 +111,19 @@ public interface ByteIterator extends Iterator<Byte> {
     throw new UnsupportedOperationException("Not implemented");
   }
 
+  default OffHeapStringByteIterator toOffHeapStringByteIterator() {
+    //return new OffHeapStringByteIterator(toOffHeapString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
   /** Consumes remaining contents of this object, and returns them as an pcj string. */
   default PersistentString toPersistentString() {
     //return new PersistentString(this.toString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  default PersistentStringByteIterator toPersistentStringByteIterator() {
+    //return new PersistentStringByteIterator(toPersistentString());
     throw new UnsupportedOperationException("Not implemented");
   }
 

@@ -124,8 +124,18 @@ public class RandomByteIterator implements ByteIterator {
   }
 
   @Override
+  public OffHeapStringByteIterator toOffHeapStringByteIterator() {
+    return new OffHeapStringByteIterator(this.toOffHeapString());
+  }
+
+  @Override
   public PersistentString toPersistentString() {
     return PersistentString.make(this.toString());
+  }
+
+  @Override
+  public PersistentStringByteIterator toPersistentStringByteIterator() {
+    return new PersistentStringByteIterator(this.toPersistentString());
   }
 
   @Override

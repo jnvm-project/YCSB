@@ -67,7 +67,7 @@ public class PersistentStringByteIterator
                                                            PersistentStringByteIterator> out,
                                                            Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
-      out.put((PersistentStringByteIterator) entry.getKey(), (PersistentStringByteIterator) entry.getValue());
+      out.put(entry.getKey().toPersistentStringByteIterator(), entry.getValue().toPersistentStringByteIterator());
     }
   }
 
@@ -153,6 +153,11 @@ public class PersistentStringByteIterator
     } else {
       return this.str();
     }
+  }
+
+  @Override
+  public PersistentStringByteIterator toPersistentStringByteIterator() {
+    return this;
   }
 
   @Override
