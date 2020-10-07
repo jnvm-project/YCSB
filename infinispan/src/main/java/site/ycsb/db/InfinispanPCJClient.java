@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.Vector;
 import javax.xml.ws.Holder;
 
-import lib.util.persistent.PersistentHashMap;
+import lib.util.persistent.PersistentSIHashMap;
 import lib.util.persistent.PersistentString;
 
 import java.util.concurrent.Phaser;
@@ -86,8 +86,8 @@ public class InfinispanPCJClient extends DB {
                      Holder<Map<ByteIterator, ByteIterator>> result) {
     String cacheName = table.toString();
     try {
-      PersistentHashMap<PersistentString, PersistentString> row = null;
-      Cache<PersistentString, PersistentHashMap<PersistentString, PersistentString>> cache =
+      PersistentSIHashMap<PersistentString, PersistentString> row = null;
+      Cache<PersistentString, PersistentSIHashMap<PersistentString, PersistentString>> cache =
           infinispanManager.getCache(cacheName);
       row = cache.get(key.toPersistentString());
       if (row == null) {
@@ -127,8 +127,8 @@ public class InfinispanPCJClient extends DB {
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      PersistentHashMap<PersistentString, PersistentString> row = null;
-      Cache<PersistentString, PersistentHashMap<PersistentString, PersistentString>> cache =
+      PersistentSIHashMap<PersistentString, PersistentString> row = null;
+      Cache<PersistentString, PersistentSIHashMap<PersistentString, PersistentString>> cache =
           infinispanManager.getCache(cacheName);
       row = cache.get(key.toPersistentString());
       if (row == null) {
@@ -150,8 +150,8 @@ public class InfinispanPCJClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      PersistentHashMap<PersistentString, PersistentString> row =
-          new PersistentHashMap<>();
+      PersistentSIHashMap<PersistentString, PersistentString> row =
+          new PersistentSIHashMap<>();
       for (Map.Entry<ByteIterator, ByteIterator> e : values.entrySet()) {
         row.put(e.getKey().toPersistentString(),
                 e.getValue().toPersistentString());
