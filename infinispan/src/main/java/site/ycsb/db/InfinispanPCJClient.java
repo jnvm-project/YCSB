@@ -37,7 +37,6 @@ import java.util.Vector;
 import javax.xml.ws.Holder;
 
 import lib.util.persistent.PersistentSIHashMap;
-import lib.util.persistent.PersistentString;
 
 import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -86,31 +85,14 @@ public class InfinispanPCJClient extends DB {
                      Holder<Map<ByteIterator, ByteIterator>> result) {
     String cacheName = table.toString();
     try {
-      PersistentSIHashMap<PersistentString, PersistentString> row = null;
-      Cache<PersistentString, PersistentSIHashMap<PersistentString, PersistentString>> cache =
-          infinispanManager.getCache(cacheName);
-      row = cache.get(key.toPersistentString());
+      Map<ByteIterator, ByteIterator> row = null;
+      Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
+      row = cache.get(key);
       if (row == null) {
         return Status.ERROR;
       }
-      result.value = new HashMap<ByteIterator, ByteIterator>();
-      for (Map.Entry<PersistentString, PersistentString> e : row.entrySet()) {
-        result.value.put(new PersistentStringByteIterator(e.getKey()),
-                         new PersistentStringByteIterator(e.getValue()));
-      }
+      result.value = row;
 
-/*
-      if (row != null) {
-        result.clear();
-        if (fields == null || fields.isEmpty()) {
-          result.putAll(row);
-        } else {
-          for (ByteIterator field : fields) {
-            result.put(field, row.get(field));
-          }
-        }
-      }
-*/
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
@@ -127,17 +109,14 @@ public class InfinispanPCJClient extends DB {
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      PersistentSIHashMap<PersistentString, PersistentString> row = null;
-      Cache<PersistentString, PersistentSIHashMap<PersistentString, PersistentString>> cache =
-          infinispanManager.getCache(cacheName);
-      row = cache.get(key.toPersistentString());
+      Map<PersistentStringByteIterator, PersistentStringByteIterator> row = null;
+      Cache<ByteIterator, Map<PersistentStringByteIterator, PersistentStringByteIterator>> cache =
+           infinispanManager.getCache(cacheName);
+      row = cache.get(key);
       if (row == null) {
         return Status.ERROR;
       } else {
-        for (Map.Entry<ByteIterator, ByteIterator> e : values.entrySet()) {
-          row.put(e.getKey().toPersistentString(),
-                  e.getValue().toPersistentString());
-        }
+        PersistentStringByteIterator.putAllAsPersistentStringByteIterators(row, values);
       }
 
       return Status.OK;
@@ -150,14 +129,9 @@ public class InfinispanPCJClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      PersistentSIHashMap<PersistentString, PersistentString> row =
-          new PersistentSIHashMap<>();
-      for (Map.Entry<ByteIterator, ByteIterator> e : values.entrySet()) {
-        row.put(e.getKey().toPersistentString(),
-                e.getValue().toPersistentString());
-      }
-      //row.putAll(values);
-      infinispanManager.getCache(cacheName).put(key.toPersistentString(), row);
+      Map<PersistentStringByteIterator, PersistentStringByteIterator> row = new PersistentSIHashMap<>();
+      PersistentStringByteIterator.putAllAsPersistentStringByteIterators(row, values);
+      infinispanManager.getCache(cacheName).put(key, row);
 
       return Status.OK;
     } catch (Exception e) {
@@ -169,7 +143,7 @@ public class InfinispanPCJClient extends DB {
   public Status delete(ByteIterator table, ByteIterator key) {
     String cacheName = table.toString();
     try {
-      infinispanManager.getCache(cacheName).remove(key.toPersistentString());
+      infinispanManager.getCache(cacheName).remove(key);
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
