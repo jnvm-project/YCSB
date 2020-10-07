@@ -128,6 +128,8 @@ public class ClientThread implements Runnable {
 
           throttleNanos(startTimeNanos);
         }
+        long endTimeNanos = System.nanoTime();
+        measurements.measure("TRANSACTION", endTimeNanos - startTimeNanos);
       } else {
         long startTimeNanos = System.nanoTime();
 
@@ -141,6 +143,8 @@ public class ClientThread implements Runnable {
 
           throttleNanos(startTimeNanos);
         }
+        long endTimeNanos = System.nanoTime();
+        measurements.measure("LOAD", endTimeNanos - startTimeNanos);
       }
     } catch (Exception e) {
       e.printStackTrace();
