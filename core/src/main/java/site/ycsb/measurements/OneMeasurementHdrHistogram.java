@@ -90,7 +90,7 @@ public class OneMeasurementHdrHistogram extends OneMeasurement {
       histogramLogWriter.setBaseTime(now);
       histogramLogWriter.outputLegend();
     }
-    histogram = new Recorder(0);
+    histogram = new Recorder(5);
   }
 
   /**
