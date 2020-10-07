@@ -23,13 +23,18 @@ import lib.util.persistent.PersistentObject;
 import lib.util.persistent.ObjectPointer;
 import lib.util.persistent.types.ObjectField;
 import lib.util.persistent.types.ObjectType;
+import lib.util.persistent.ComparableWith;
+import lib.util.persistent.EquatesWith;
 
 import java.util.Map;
 
 /**
  * A ByteIterator that iterates through a string.
  */
-public class PersistentStringByteIterator extends PersistentObject implements ByteIterator {
+public class PersistentStringByteIterator
+    extends PersistentObject
+    implements Comparable<PersistentStringByteIterator>, ComparableWith<PersistentString>,
+               EquatesWith<PersistentString>, ByteIterator {
   private static final ObjectField<PersistentString> STR = new ObjectField<>(PersistentString.class);
   private static final ObjectType<PersistentStringByteIterator> TYPE =
       ObjectType.withFields(PersistentStringByteIterator.class, STR);
@@ -142,17 +147,37 @@ public class PersistentStringByteIterator extends PersistentObject implements By
   }
 
   @Override
-  public int hashCode() {
-    return this.str().hashCode();
-  }
-
-  @Override
   public PersistentString toPersistentString() {
     if (off > 0) {
       return ByteIterator.super.toPersistentString();
     } else {
       return this.str();
     }
+  }
+
+  @Override
+  public int compareTo(PersistentStringByteIterator anotherStringByteIterator) {
+    return str().compareTo(anotherStringByteIterator.str());
+  }
+
+  @Override
+  public int compareWith(PersistentString anotherString) {
+    return str().compareTo(anotherString);
+  }
+
+  @Override
+  public int equivalentHash() {
+    return str().hashCode();
+  }
+
+  @Override
+  public boolean equatesWith(PersistentString anotherString) {
+    return str().equals(anotherString);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.str().hashCode();
   }
 
   public boolean equals(Object o) {
