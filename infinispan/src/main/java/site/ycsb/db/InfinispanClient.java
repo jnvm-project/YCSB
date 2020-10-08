@@ -18,6 +18,7 @@
 package site.ycsb.db;
 
 import site.ycsb.ByteIterator;
+import site.ycsb.StringByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
 import site.ycsb.Status;
@@ -117,12 +118,12 @@ public class InfinispanClient extends DB {
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
-      Map<ByteIterator, ByteIterator> row = cache.get(key);
+      Cache<ByteIterator, Map<StringByteIterator, StringByteIterator>> cache = infinispanManager.getCache(cacheName);
+      Map<StringByteIterator, StringByteIterator> row = cache.get(key);
       if (row == null) {
         row = new HashMap<>();
       }
-      row.putAll(values);
+      StringByteIterator.putAllAsStringByteIterators(row, values);
       cache.put(key, row); //always put back into the store, for the persistent layer to properly work
 
       return Status.OK;
@@ -135,8 +136,8 @@ public class InfinispanClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Map<ByteIterator, ByteIterator> row = new HashMap<>();
-      row.putAll(values);
+      Map<StringByteIterator, StringByteIterator> row = new HashMap<>();
+      StringByteIterator.putAllAsStringByteIterators(row, values);
       infinispanManager.getCache(cacheName).put(key, row);
 
       return Status.OK;
