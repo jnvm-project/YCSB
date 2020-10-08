@@ -13,7 +13,7 @@ YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 
 bindings="infinispan"
-recordcounts="15000000"
+recordcounts="14000000"
 minoperationcount=100000000
 fieldcounts="10"
 fieldlength="100"
@@ -21,10 +21,10 @@ workloads="workloadf"
 distribution="zipfian"
 threads="10"
 ycsb_jobs="run"
-dataintegrity="true"
+dataintegrity="true false"
 
-loadcacheproportion="10"
-cacheproportions="1 10" # 100"
+loadcacheproportion="1"
+cacheproportions="1 10 100"
 defaultreadonly="false"
 defaultpreload="true"
 
@@ -35,42 +35,43 @@ for binding in $bindings ; do
   for recordcount in $recordcounts ; do
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
                                             || operationcount=$recordcount
-    cachesizes=""
+    cachesizes="1"
     for cacheproportion in $cacheproportions ; do
       cachesizes=$cachesizes" "$(( $recordcount * $cacheproportion / 100 ))
     done
     loadcachesize=$(( $recordcount * $loadcacheproportion / 100 ))
 
-    #rm -fr /pmem{0,1,2,3}/*
-    #export JAVA_OPTS="-Xmx25g -XX:+UseG1GC"
-    #PIN_CPU="taskset -c 0-19,80-99"
-    #sed -e 's/size=\".*\"/size=\"'"${loadcachesize}"'\"/g' -i $ISPN_CFG
-    #sed -e 's/read-only=\"true\"/read-only=\"'"${defaultreadonly}"'\"/g' \
-    #    -e 's/read-only=\"false\"/read-only=\"'"${defaultreadonly}"'\"/g' -i $ISPN_CFG
-    #$PIN_CPU ${YCSB_DIR}/bin/ycsb.sh load $binding -P ${YCSB_DIR}/workloads/workloadf -threads 10\
-    #  -p dataintegrity=true\
-    #  -p offheap=$offheap\
-    #  -p recordcount=$recordcount\
-    #  -p operationcount=$operationcount\
-    #  -p fieldcount=$fieldcount\
-    #  -p requestdistribution=$distribution\
-    #  -p measurementtype=hdrhistogram\
-    #  -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloadf."true".$recordcount.$loadcachesize.$fieldcount.$distribution.10.hdr.log\
-    #  >> $LOGDIR/$binding.load.workloadf."true".$recordcount.$loadcachesize.$fieldcount.$distribution.10.log
+    rm -fr /pmem{0,1,2,3}/*
+    export JAVA_OPTS="-Xmx20g -XX:+UseG1GC"
+    PIN_CPU="taskset -c 0-19,80-99"
+    sed -e 's/size=\".*\"/size=\"'"${loadcachesize}"'\"/g' -i $ISPN_CFG
+    sed -e 's/read-only=\"true\"/read-only=\"'"${defaultreadonly}"'\"/g' \
+        -e 's/read-only=\"false\"/read-only=\"'"${defaultreadonly}"'\"/g' -i $ISPN_CFG
+    $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh load $binding -P ${YCSB_DIR}/workloads/workloadf -threads 10\
+      -p dataintegrity=true\
+      -p offheap=$offheap\
+      -p recordcount=$recordcount\
+      -p operationcount=$operationcount\
+      -p fieldcount=$fieldcount\
+      -p requestdistribution=$distribution\
+      -p measurementtype=hdrhistogram\
+      -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloadf."true".$recordcount.$loadcachesize.$fieldcount.$distribution.10.hdr.log\
+      >> $LOGDIR/$binding.load.workloadf."true".$recordcount.$loadcachesize.$fieldcount.$distribution.10.log
     for cachesize in $cachesizes ; do
       #[ $cachesize -eq 1500000 ] && PIN_CPU="taskset -c 0-19,80-99"
       #[ $cachesize -eq 15000000 ] && PIN_CPU=""
-      [ $cachesize -eq 150000 ] && export JAVA_OPTS="-Xmx30g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #15M entries
-      [ $cachesize -eq 1500000 ] && export JAVA_OPTS="-Xmx40g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #15M entries
-      [ $cachesize -eq 15000000 ] && export JAVA_OPTS="-Xmx100g -XX:+UseG1GC -XX:+UseNUMA" && PIN_CPU="" #15M entries
+      [ $cachesize -eq 1 ] && export JAVA_OPTS="-Xmx15g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #15M entries
+      [ $cachesize -eq 140000 ] && export JAVA_OPTS="-Xmx20g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #15M entries
+      [ $cachesize -eq 1400000 ] && export JAVA_OPTS="-Xmx30g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #15M entries
+      [ $cachesize -eq 14000000 ] && export JAVA_OPTS="-Xmx100g -XX:+UseG1GC -XX:+UseNUMA" && PIN_CPU="" #15M entries
       #[ $cachesize -eq 1500000 ] && export JAVA_OPTS="-Xmx25g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #10M entries
       #readonly="true"
-      #readonly=$defaultreadonly
+      readonly=$defaultreadonly
       #preload="false"
-      #preload=$defaultpreload
+      preload=$defaultpreload
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
-    for readonly in "true" "false" ; do
-    for preload in "true" "false" ; do
+    #for readonly in "true" "false" ; do
+    #for preload in "true" "false" ; do
       sed -e 's/size=\".*\"/size=\"'"${cachesize}"'\"/g' -i $ISPN_CFG
       sed -e 's/read-only=\"true\"/read-only=\"'"${readonly}"'\"/g' \
           -e 's/read-only=\"false\"/read-only=\"'"${readonly}"'\"/g' -i $ISPN_CFG
@@ -94,8 +95,8 @@ for binding in $bindings ; do
           done
         done
       done
-    done
-    done
+    #done
+    #done
     done
     done
   done
