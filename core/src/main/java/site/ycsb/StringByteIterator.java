@@ -52,6 +52,17 @@ public class StringByteIterator implements ByteIterator, Serializable {
   }
 
   /**
+   * Put all of the entries of one map into the other, converting
+   * String values into ByteIterators.
+   */
+  public static void putAllAsStringByteIterators(
+      Map<StringByteIterator, StringByteIterator> out, Map<ByteIterator, ByteIterator> in) {
+    for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
+      out.put(entry.getKey().toStringByteIterator(), entry.getValue().toStringByteIterator());
+    }
+  }
+
+  /**
    * Create a copy of a map, converting the values from Strings to
    * StringByteIterators.
    */
@@ -131,6 +142,11 @@ public class StringByteIterator implements ByteIterator, Serializable {
     } else {
       return str;
     }
+  }
+
+  @Override
+  public StringByteIterator toStringByteIterator() {
+    return this;
   }
 
   @Override

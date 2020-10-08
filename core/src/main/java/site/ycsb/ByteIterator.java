@@ -127,4 +127,9 @@ public interface ByteIterator extends Iterator<Byte> {
     throw new UnsupportedOperationException("Not implemented");
   }
 
+  default StringByteIterator toStringByteIterator() {
+    //return new PersistentStringByteIterator(toPersistentString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
 }

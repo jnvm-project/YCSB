@@ -143,4 +143,9 @@ public class RandomByteIterator implements ByteIterator {
     return ByteIterator.super.toString1();
   }
 
+  @Override
+  public StringByteIterator toStringByteIterator() {
+    return new StringByteIterator(this.toString());
+  }
+
 }
