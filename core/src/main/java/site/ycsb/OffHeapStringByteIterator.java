@@ -180,12 +180,28 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
   public long length() {
     return str.length();
   }
+/*
   public long addressFromFieldOffset(
         long fieldOffset) {
     return str.addressFromFieldOffset(fieldOffset);
   }
+*/
+  public long addressFromFieldOffsetRO(
+        long fieldOffset) {
+    return str.addressFromFieldOffsetRO(fieldOffset);
+  }
+  public long addressFromFieldOffsetRW(
+        long fieldOffset) {
+    return str.addressFromFieldOffsetRW(fieldOffset);
+  }
   public void destroy() {
     str.destroy();
+  }
+  public void validate() {
+    str.validate();
+  }
+  public void invalidate() {
+    str.invalidate();
   }
 
 }
