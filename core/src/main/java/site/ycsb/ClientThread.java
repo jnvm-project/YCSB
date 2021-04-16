@@ -18,6 +18,8 @@
 package site.ycsb;
 
 import site.ycsb.measurements.Measurements;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -134,6 +136,7 @@ public class ClientThread implements Runnable {
     }
     try {
       if (!dotransactions || dopreload) {
+        final Map<String, Long[]> gcsStart = Utils.getGCStatst();
         long startTimeNanos = System.nanoTime();
 
         while (((loadopcount == 0) || (opsdone < loadopcount)) && !workload.isStopRequested()) {
@@ -145,10 +148,24 @@ public class ClientThread implements Runnable {
         }
 
         long endTimeNanos = System.nanoTime();
+        final Map<String, Long[]> gcsEnd = Utils.getGCStatst();
+        long totalGCCount = 0;
+        long totalGCTime = 0;
+        for (final Entry<String, Long[]> end : gcsEnd.entrySet()) {
+          final Long[] start = gcsStart.get(end.getKey());
+          if (start == null) {
+            continue;
+          }
+          totalGCCount += end.getValue()[0] - start[0];
+          totalGCTime += end.getValue()[1] - start[1];
+        }
+        measurements.measure("LOAD_GCs_Count", totalGCCount);
+        measurements.measure("LOAD_GCs_Time(ms)", totalGCTime);
         measurements.measure("LOAD", endTimeNanos - startTimeNanos);
         loadBarrier.await();
       }
       if (dotransactions) {
+        final Map<String, Long[]> gcsStart = Utils.getGCStatst();
         long startTimeNanos = System.nanoTime();
 
         while (((opcount == 0) || (opsdone < targetopcount)) && !workload.isStopRequested()) {
@@ -160,6 +177,19 @@ public class ClientThread implements Runnable {
         }
 
         long endTimeNanos = System.nanoTime();
+        final Map<String, Long[]> gcsEnd = Utils.getGCStatst();
+        long totalGCCount = 0;
+        long totalGCTime = 0;
+        for (final Entry<String, Long[]> end : gcsEnd.entrySet()) {
+          final Long[] start = gcsStart.get(end.getKey());
+          if (start == null) {
+            continue;
+          }
+          totalGCCount += end.getValue()[0] - start[0];
+          totalGCTime += end.getValue()[1] - start[1];
+        }
+        measurements.measure("MAIN_GCs_Count", totalGCCount);
+        measurements.measure("MAIN_GCs_Time(ms)", totalGCTime);
         measurements.measure("TRANSACTION", endTimeNanos - startTimeNanos);
       }
     } catch (Exception e) {
