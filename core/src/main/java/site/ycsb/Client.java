@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -140,6 +141,11 @@ public final class Client {
   public static final String DO_TRANSACTIONS_PROPERTY = "dotransactions";
 
   /**
+   * Whether or not to run the load phase prior to the transaction phase (run).
+   */
+  public static final String DO_PRELOAD_PROPERTY = "dopreload";
+
+  /**
    * Whether or not to show status during run.
    */
   public static final String STATUS_PROPERTY = "status";
@@ -175,6 +181,7 @@ public final class Client {
         "       be specified as the \"target\" property using -p");
     System.out.println("  -load:  run the loading phase of the workload");
     System.out.println("  -t:  run the transactions phase of the workload (default)");
+    System.out.println("  -preload:  run the loading phase prior to the transactions phase of the workload");
     System.out.println("  -db dbname: specify the name of the DB to use (default: site.ycsb.BasicDB) - \n" +
         "        can also be specified as the \"db\" property using -p");
     System.out.println("  -P propertyfile: load properties from the given file. Multiple files can");
@@ -405,22 +412,32 @@ public final class Client {
                                            CountDownLatch completeLatch) {
     boolean initFailed = false;
     boolean dotransactions = Boolean.valueOf(props.getProperty(DO_TRANSACTIONS_PROPERTY, String.valueOf(true)));
+    boolean dopreload = Boolean.valueOf(props.getProperty(DO_PRELOAD_PROPERTY, String.valueOf(false)));
+    final CyclicBarrier loadBarrier = new CyclicBarrier(threadcount);
 
     final List<ClientThread> clients = new ArrayList<>(threadcount);
     try (final TraceScope span = tracer.newScope(CLIENT_INIT_SPAN)) {
-      int opcount;
+      int opcount = 0;
+      int loadopcount = 0;
       if (dotransactions) {
         opcount = Integer.parseInt(props.getProperty(OPERATION_COUNT_PROPERTY, "0"));
-      } else {
-        if (props.containsKey(INSERT_COUNT_PROPERTY)) {
-          opcount = Integer.parseInt(props.getProperty(INSERT_COUNT_PROPERTY, "0"));
-        } else {
-          opcount = Integer.parseInt(props.getProperty(RECORD_COUNT_PROPERTY, DEFAULT_RECORD_COUNT));
+        if (threadcount > opcount){
+          threadcount = opcount;
+          System.out.println("Warning: the threadcount is bigger than recordcount,"
+                             + " the threadcount will be recordcount!");
         }
       }
-      if (threadcount > opcount){
-        threadcount = opcount;
-        System.out.println("Warning: the threadcount is bigger than recordcount, the threadcount will be recordcount!");
+      if (!dotransactions || dopreload) {
+        if (props.containsKey(INSERT_COUNT_PROPERTY)) {
+          loadopcount = Integer.parseInt(props.getProperty(INSERT_COUNT_PROPERTY, "0"));
+        } else {
+          loadopcount = Integer.parseInt(props.getProperty(RECORD_COUNT_PROPERTY, DEFAULT_RECORD_COUNT));
+        }
+        if (threadcount > loadopcount){
+          threadcount = loadopcount;
+          System.out.println("Warning: the threadcount is bigger than recordcount,"
+                             + " the threadcount will be recordcount!");
+        }
       }
       for (int threadid = 0; threadid < threadcount; threadid++) {
         DB db;
@@ -433,14 +450,19 @@ public final class Client {
         }
 
         int threadopcount = opcount / threadcount;
+        int threadloadopcount = loadopcount / threadcount;
 
         // ensure correct number of operations, in case opcount is not a multiple of threadcount
         if (threadid < opcount % threadcount) {
           ++threadopcount;
         }
+        if (threadid < loadopcount % threadcount) {
+          ++threadloadopcount;
+        }
 
         ClientThread t = new ClientThread(db, dotransactions, workload, props, threadopcount, targetperthreadperms,
             completeLatch);
+        t.setLoad(dopreload, threadloadopcount, loadBarrier);
         t.setThreadId(threadid);
         t.setThreadCount(threadcount);
         clients.add(t);
@@ -570,6 +592,9 @@ public final class Client {
       } else if (args[argindex].compareTo("-t") == 0) {
         props.setProperty(DO_TRANSACTIONS_PROPERTY, String.valueOf(true));
         argindex++;
+      } else if (args[argindex].compareTo("-preload") == 0) {
+        props.setProperty(DO_PRELOAD_PROPERTY, String.valueOf(true));
+        argindex++;
       } else if (args[argindex].compareTo("-s") == 0) {
         props.setProperty(STATUS_PROPERTY, String.valueOf(true));
         argindex++;
@@ -666,14 +691,11 @@ public final class Client {
 
       fileprops.setProperty(prop, props.getProperty(prop));
     }
-
     props = fileprops;
-
     if (!checkRequiredProperties(props)) {
       System.out.println("Failed check required properties.");
       System.exit(0);
     }
-
     return props;
   }
 }

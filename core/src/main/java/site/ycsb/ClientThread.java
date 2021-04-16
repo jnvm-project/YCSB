@@ -20,6 +20,7 @@ package site.ycsb;
 import site.ycsb.measurements.Measurements;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
 
@@ -29,12 +30,16 @@ import java.util.concurrent.locks.LockSupport;
 public class ClientThread implements Runnable {
   // Counts down each of the clients completing.
   private final CountDownLatch completeLatch;
+  private CyclicBarrier loadBarrier;
 
   private static boolean spinSleep;
   private DB db;
   private boolean dotransactions;
+  private boolean dopreload;
   private Workload workload;
   private int opcount;
+  private int loadopcount;
+  private int targetopcount;
   private double targetOpsPerMs;
 
   private int opsdone;
@@ -81,6 +86,19 @@ public class ClientThread implements Runnable {
     threadcount = threadCount;
   }
 
+  public void setLoad(boolean preload, int opCount, CyclicBarrier barrier) {
+    this.dopreload = preload;
+    this.loadopcount = opCount;
+    this.loadBarrier = barrier;
+    if (dotransactions && dopreload) {
+      this.targetopcount = loadopcount+opcount;
+    } else if (dotransactions) {
+      this.targetopcount = opcount;
+    } else {
+      this.targetopcount = loadopcount;
+    }
+  }
+
   public int getOpsDone() {
     return opsdone;
   }
@@ -115,36 +133,34 @@ public class ClientThread implements Runnable {
       sleepUntil(System.nanoTime() + randomMinorDelay);
     }
     try {
-      if (dotransactions) {
+      if (!dotransactions || dopreload) {
         long startTimeNanos = System.nanoTime();
 
-        while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
-
-          if (!workload.doTransaction(db, workloadstate)) {
-            break;
-          }
-
-          opsdone++;
-
-          throttleNanos(startTimeNanos);
-        }
-        long endTimeNanos = System.nanoTime();
-        measurements.measure("TRANSACTION", endTimeNanos - startTimeNanos);
-      } else {
-        long startTimeNanos = System.nanoTime();
-
-        while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
-
+        while (((loadopcount == 0) || (opsdone < loadopcount)) && !workload.isStopRequested()) {
           if (!workload.doInsert(db, workloadstate)) {
             break;
           }
-
           opsdone++;
-
           throttleNanos(startTimeNanos);
         }
+
         long endTimeNanos = System.nanoTime();
         measurements.measure("LOAD", endTimeNanos - startTimeNanos);
+        loadBarrier.await();
+      }
+      if (dotransactions) {
+        long startTimeNanos = System.nanoTime();
+
+        while (((opcount == 0) || (opsdone < targetopcount)) && !workload.isStopRequested()) {
+          if (!workload.doTransaction(db, workloadstate)) {
+            break;
+          }
+          opsdone++;
+          throttleNanos(startTimeNanos);
+        }
+
+        long endTimeNanos = System.nanoTime();
+        measurements.measure("TRANSACTION", endTimeNanos - startTimeNanos);
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -185,7 +201,7 @@ public class ClientThread implements Runnable {
    * The total amount of work this thread is still expected to do.
    */
   int getOpsTodo() {
-    int todo = opcount - opsdone;
+    int todo = targetopcount - opsdone;
     return todo < 0 ? 0 : todo;
   }
 }
