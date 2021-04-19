@@ -49,6 +49,7 @@ public abstract class AbstractMapClient extends DB {
 
   protected int initialCapacity;
   protected boolean dotransactions;
+  protected boolean dopreload;
   protected int threadcount;
 
   /**
@@ -64,6 +65,8 @@ public abstract class AbstractMapClient extends DB {
         Integer.MAX_VALUE : (int) recordcount;
     dotransactions =
         Boolean.valueOf(props.getProperty(Client.DO_TRANSACTIONS_PROPERTY, String.valueOf(true)));
+    dopreload =
+        Boolean.valueOf(props.getProperty(Client.DO_PRELOAD_PROPERTY, String.valueOf(false)));
     threadcount =
         Integer.parseInt(props.getProperty(Client.THREAD_COUNT_PROPERTY, "1"));
   }

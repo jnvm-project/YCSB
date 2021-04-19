@@ -50,7 +50,9 @@ public class VolatileHashMapClient extends AbstractMapClient {
     if (curInitCount > 0) {
       INIT.awaitAdvance(0);
     } else {
-      if (dotransactions) {
+      if (!dotransactions || dopreload) {
+        backend = new ConcurrentHashMap<>(initialCapacity);
+      } else {
         try {
           FileInputStream fis = new FileInputStream(PMEM_FILE);
           ObjectInputStream ois = new ObjectInputStream(fis);
@@ -60,8 +62,6 @@ public class VolatileHashMapClient extends AbstractMapClient {
         } catch(Exception e) {
           throw new DBException(e);
         }
-      } else {
-        backend = new ConcurrentHashMap<>(initialCapacity);
       }
       INIT.arriveAndAwaitAdvance();
     }
@@ -73,7 +73,7 @@ public class VolatileHashMapClient extends AbstractMapClient {
     if (curInitCount > 0) {
       INIT.awaitAdvance(1);
     } else {
-      if (!dotransactions) {
+      if (!dotransactions && !dopreload) {
         try {
           FileOutputStream fos = new FileOutputStream(PMEM_FILE);
           ObjectOutputStream oos = new ObjectOutputStream(fos);
