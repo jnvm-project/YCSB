@@ -52,7 +52,7 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
     }
   }
 
-  public static void putAllAsOffHeapStringByteIterators(Map<OffHeapStringByteIterator, OffHeapStringByteIterator> out,
+  public static void putAllAsOffHeapStringByteIterators(Map<ByteIterator, ByteIterator> out,
                                                         Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
       out.put(entry.getKey().toOffHeapStringByteIterator(), entry.getValue().toOffHeapStringByteIterator());

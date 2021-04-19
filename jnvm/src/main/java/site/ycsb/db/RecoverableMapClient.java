@@ -39,7 +39,6 @@ import javax.xml.ws.Holder;
  */
 public class RecoverableMapClient extends AbstractMapClient {
 
-  protected Map<ByteIterator, Map<OffHeapStringByteIterator, OffHeapStringByteIterator>> backend;
   private static final Phaser INIT = new Phaser(1);
   private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
 
@@ -121,7 +120,7 @@ public class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
-    Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = backend.get(key);
+    Map<ByteIterator, ByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
@@ -145,9 +144,9 @@ public class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
-    Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableStrongHashMap<>(values.size());
-    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
-    backend.put(key, row);
+    Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
+    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<ByteIterator, ByteIterator>) row, values);
+    backend.put(key, (Map<ByteIterator, ByteIterator>) row);
 
     return Status.OK;
   }
