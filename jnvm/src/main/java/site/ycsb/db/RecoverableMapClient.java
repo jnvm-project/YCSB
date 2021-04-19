@@ -24,6 +24,8 @@ import site.ycsb.OffHeapStringByteIterator;
 import site.ycsb.DBException;
 import site.ycsb.Status;
 
+import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.ws.Holder;
@@ -38,6 +40,8 @@ import javax.xml.ws.Holder;
 public class RecoverableMapClient extends AbstractMapClient {
 
   protected Map<ByteIterator, Map<OffHeapStringByteIterator, OffHeapStringByteIterator>> backend;
+  private static final Phaser INIT = new Phaser(1);
+  private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
@@ -46,8 +50,16 @@ public class RecoverableMapClient extends AbstractMapClient {
   @Override
   public void init() throws DBException {
     super.init();
-    if (backend == null) {
-      backend = RecoverableStrongHashMap.recover("usertable", initialCapacity);
+
+    int curInitCount = INIT_COUNT.getAndIncrement();
+
+    if (curInitCount > 0) {
+      INIT.awaitAdvance(0);
+    } else {
+      if (backend == null) {
+        backend = RecoverableStrongHashMap.recover("usertable", initialCapacity);
+      }
+      INIT.arriveAndAwaitAdvance();
     }
   }
 
@@ -57,7 +69,14 @@ public class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public void cleanup() throws DBException {
-    backend = null;
+    int curInitCount = INIT_COUNT.decrementAndGet();
+    if (curInitCount > 0) {
+      INIT.awaitAdvance(1);
+    } else {
+      backend = null;
+      INIT.arriveAndAwaitAdvance();
+    }
+    super.cleanup();
   }
 
   /**
