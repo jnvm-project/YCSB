@@ -108,9 +108,8 @@ public class InfinispanJNVMClient extends DB {
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = null;
-      Cache<ByteIterator, Map<OffHeapStringByteIterator, OffHeapStringByteIterator>> cache =
-          infinispanManager.getCache(cacheName);
+      Map<ByteIterator, ByteIterator> row = null;
+      Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
       if (row == null) {
         return Status.ERROR;
@@ -128,8 +127,8 @@ public class InfinispanJNVMClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableHashMap<>(values.size());
-      OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+      Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableHashMap<>(values.size());
+      OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<ByteIterator, ByteIterator>) row, values);
       infinispanManager.getCache(cacheName).put(key, row);
 
       return Status.OK;
