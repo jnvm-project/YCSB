@@ -17,18 +17,16 @@
  */
 package site.ycsb.db;
 
-import eu.telecomsudparis.jnvm.offheap.OffHeap;
-import eu.telecomsudparis.jnvm.offheap.OffHeapString;
-import eu.telecomsudparis.jnvm.util.persistent.RecoverableHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
 
 import site.ycsb.ByteIterator;
+import site.ycsb.OffHeapStringByteIterator;
 import site.ycsb.DBException;
 import site.ycsb.Status;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Set;
+import javax.xml.ws.Holder;
 
 /**
  * Recoverable hash map client.
@@ -39,10 +37,7 @@ import java.util.Set;
  */
 public class RecoverableMapClient extends AbstractMapClient {
 
-  private static final long RMAP_OFFSET=16;
-
-  protected Map<OffHeapString, Map<OffHeapString, OffHeapString>> backend;
-  protected Map<String, OffHeapString> columns = new HashMap<>();
+  protected Map<ByteIterator, Map<OffHeapStringByteIterator, OffHeapStringByteIterator>> backend;
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
@@ -51,12 +46,8 @@ public class RecoverableMapClient extends AbstractMapClient {
   @Override
   public void init() throws DBException {
     super.init();
-    if (dotransactions) {
-      backend = new RecoverableHashMap(OffHeap.baseAddr() + RMAP_OFFSET);
-    } else {
-      backend = new RecoverableHashMap(initialCapacity);
-      System.out.println(((RecoverableHashMap)backend).getOffset());
-      System.out.println(((RecoverableHashMap)backend).getOffset() - OffHeap.baseAddr());
+    if (backend == null) {
+      backend = RecoverableStrongHashMap.recover("usertable", initialCapacity);
     }
   }
 
@@ -84,51 +75,15 @@ public class RecoverableMapClient extends AbstractMapClient {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status read(String table, String key, Set<String> fields,
-      Map<String, ByteIterator> result) {
-    Map<OffHeapString, OffHeapString> row = backend.get(key);
+  public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
+      Holder<Map<ByteIterator, ByteIterator>> result) {
+    Map<? extends ByteIterator, ? extends ByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    result.clear();
-    if(fields == null || fields.isEmpty()) {
-      for (Map.Entry<String, OffHeapString> column : columns.entrySet()) {
-        OffHeapString value = row.get(column.getValue());
-        if (value != null) {
-          result.put(column.getKey(), new OffHeapStringByteIterator(value));
-        }
-      }
-    } else {
-      for(String field : fields) {
-        result.put(field, new OffHeapStringByteIterator(row.get(field)));
-      }
-    }
-    return Status.OK;
-  }
+    result.value.clear();
+    result.value = (Map<ByteIterator, ByteIterator>) row;
 
-  /**
-   * Perform a range scan for a set of records in the database. Each field/value
-   * pair from the result will be stored in a HashMap.
-   *
-   * Cassandra CQL uses "token" method for range scan which doesn't always yield
-   * intuitive results.
-   *
-   * @param table
-   *          The name of the table
-   * @param startkey
-   *          The record key of the first record to read.
-   * @param recordcount
-   *          The number of records to read
-   * @param fields
-   *          The list of fields to read, or null for all of them
-   * @param result
-   *          A Vector of HashMaps, where each HashMap is a set field/value
-   *          pairs for one record
-   * @return Zero on success, a non-zero error code on error
-   */
-  @Override
-  public Status scan(String table, String startkey, int recordcount,
-      Set<String> fields, Vector<HashMap<String, ByteIterator>> result) {
     return Status.OK;
   }
 
@@ -146,19 +101,13 @@ public class RecoverableMapClient extends AbstractMapClient {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status update(String table, String key, Map<String, ByteIterator> values) {
-    RecoverableHashMap<OffHeapString, OffHeapString> row = (RecoverableHashMap) backend.get(key);
+  public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    for (Map.Entry<String, ByteIterator> entry : values.entrySet()) {
-      OffHeapString ohs = row.replace(entry.getKey(), new OffHeapString(entry.getValue().toString()));
-      if (ohs != null) {
-        ohs.destroy();
-      }
-    }
-    //TODO This insertion should not be required
-    //backend.put(key, row);
+    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+
     return Status.OK;
   }
 
@@ -176,20 +125,11 @@ public class RecoverableMapClient extends AbstractMapClient {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status insert(String table, String key, Map<String, ByteIterator> values) {
-    Map<OffHeapString, OffHeapString> row = new RecoverableHashMap<>(10);
-    for (Map.Entry<String, ByteIterator> entry : values.entrySet()) {
-      String kk = entry.getKey();
-      OffHeapString k;
-      if (columns.containsKey(kk)) {
-        k = columns.get(kk);
-      } else {
-        k = new OffHeapString(kk);
-        columns.put(kk, k);
-      }
-      row.put(k, new OffHeapString(entry.getValue().toString()));
-    }
-    backend.put(new OffHeapString(key), row);
+  public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableStrongHashMap<>(values.size());
+    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+    backend.put(key, row);
+
     return Status.OK;
   }
 
@@ -203,7 +143,7 @@ public class RecoverableMapClient extends AbstractMapClient {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status delete(String table, String key) {
+  public Status delete(ByteIterator table, ByteIterator key) {
     backend.remove(key);
     return Status.OK;
   }
