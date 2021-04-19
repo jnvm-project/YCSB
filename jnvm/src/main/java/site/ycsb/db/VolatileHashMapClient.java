@@ -18,6 +18,7 @@
 package site.ycsb.db;
 
 import site.ycsb.DBException;
+import site.ycsb.ByteIterator;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
@@ -37,9 +38,6 @@ import java.io.ObjectInputStream;
  */
 public class VolatileHashMapClient extends AbstractMapClient {
 
-  private static final int SIZE=0;
-  private static final int VMAP=1;
-
   private static final Phaser INIT = new Phaser(1);
   private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
 
@@ -56,7 +54,7 @@ public class VolatileHashMapClient extends AbstractMapClient {
         try {
           FileInputStream fis = new FileInputStream(PMEM_FILE);
           ObjectInputStream ois = new ObjectInputStream(fis);
-          backend = (ConcurrentHashMap<String, Map<String, String>>) ois.readObject();
+          backend = (Map<ByteIterator, Map<ByteIterator, ByteIterator>>) ois.readObject();
           ois.close();
           fis.close();
         } catch(Exception e) {

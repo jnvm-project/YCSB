@@ -19,7 +19,6 @@ package site.ycsb.db;
 
 import eu.telecomsudparis.jnvm.PMemPool;
 
-import site.ycsb.StringByteIterator;
 import site.ycsb.ByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
@@ -31,6 +30,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.Set;
 import java.util.Properties;
+import javax.xml.ws.Holder;
 
 /**
  * Map abstract client.
@@ -45,7 +45,7 @@ public abstract class AbstractMapClient extends DB {
   protected static final long POOL_SIZE=4*1024*1024*1024L;
 
   protected PMemPool pmemPool;
-  protected static Map<String, Map<String, String>> backend;
+  protected static Map<ByteIterator, Map<ByteIterator, ByteIterator>> backend;
 
   protected int initialCapacity;
   protected boolean dotransactions;
@@ -92,20 +92,24 @@ public abstract class AbstractMapClient extends DB {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status read(String table, String key, Set<String> fields,
-      Map<String, ByteIterator> result) {
-    Map<String, String> row = backend.get(key);
+  public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
+      Holder<Map<ByteIterator, ByteIterator>> result) {
+    Map<ByteIterator, ByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    result.clear();
+    result.value.clear();
+    result.value = row;
+/*
     if(fields == null || fields.isEmpty()) {
-      StringByteIterator.putAllAsByteIterators(result, row);
+      //StringByteIterator.putAllAsByteIterators(result.value, row);
+      result.value = row;
     } else {
-      for(String field : fields) {
-        result.put(field, new StringByteIterator(row.get(field)));
+      for(ByteIterator field : fields) {
+        result.value.put(field, row.get(field));
       }
     }
+*/
     return Status.OK;
   }
 
@@ -130,8 +134,8 @@ public abstract class AbstractMapClient extends DB {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status scan(String table, String startkey, int recordcount,
-      Set<String> fields, Vector<HashMap<String, ByteIterator>> result) {
+  public Status scan(ByteIterator table, ByteIterator startkey, int recordcount,
+      Set<ByteIterator> fields, Vector<HashMap<ByteIterator, ByteIterator>> result) {
     return Status.OK;
   }
 
@@ -149,14 +153,13 @@ public abstract class AbstractMapClient extends DB {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status update(String table, String key, Map<String, ByteIterator> values) {
-    Map<String, String> row = backend.get(key);
+  public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    Map<ByteIterator, ByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    StringByteIterator.putAllAsStrings(row, values);
-    //TODO This insertion should not be required
-    backend.put(key, row);
+    //StringByteIterator.putAllAsStrings(row, values);
+    row.putAll(values);
     return Status.OK;
   }
 
@@ -174,9 +177,10 @@ public abstract class AbstractMapClient extends DB {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status insert(String table, String key, Map<String, ByteIterator> values) {
-    Map<String, String> row = new HashMap<>();
-    StringByteIterator.putAllAsStrings(row, values);
+  public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    Map<ByteIterator, ByteIterator> row = new HashMap<>();
+    //StringByteIterator.putAllAsStrings(row, values);
+    row.putAll(values);
     backend.put(key, row);
     return Status.OK;
   }
@@ -191,7 +195,7 @@ public abstract class AbstractMapClient extends DB {
    * @return Zero on success, a non-zero error code on error
    */
   @Override
-  public Status delete(String table, String key) {
+  public Status delete(ByteIterator table, ByteIterator key) {
     backend.remove(key);
     return Status.OK;
   }
