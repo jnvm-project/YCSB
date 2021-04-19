@@ -17,18 +17,18 @@
  */
 package site.ycsb.db;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
- * Volatile HashMap client.
+ * Volatile SkipListMap client.
  *
  * See {@code jnvm/README.md} for details.
  *
  * @author Anatole Lefort
  */
-public class VolatileHashMapClient extends VolatileMapClient {
+public class VolatileSkipListMapClient extends VolatileMapClient {
   @Override
   void buildMap() {
-    backend = new ConcurrentHashMap<>(initialCapacity);
+    backend = new ConcurrentSkipListMap<>();
   }
 }
