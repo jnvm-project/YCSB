@@ -28,9 +28,9 @@ import java.util.Map;
  * A ByteIterator that iterates through a string.
  */
 public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, Comparable<ByteIterator> {
-  private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class, 15L);
-  private OffHeapString str;
-  private int off;
+  private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class, 16L);
+  protected OffHeapString str;
+  protected int off;
 
   /**
    * Put all of the entries of one map into the other, converting
@@ -59,19 +59,18 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
     }
   }
 
-  public OffHeapStringByteIterator(OffHeapString s) {
+  protected OffHeapStringByteIterator(OffHeapString s) {
     this.str = s;
     this.off = 0;
-    OffHeap.getAllocator().blockFromOffset(str.getOffset()).setKlass(CLASS_ID);
   }
 
   public OffHeapStringByteIterator(String s) {
     this(new OffHeapString(s));
+    OffHeap.getAllocator().blockFromOffset(str.getOffset()).setKlass(CLASS_ID);
   }
 
   public OffHeapStringByteIterator(long offset) {
-    this.str = new OffHeapString(offset);
-    this.off = 0;
+    this(new OffHeapString(offset));
   }
 
   public OffHeapStringByteIterator(MemoryBlockHandle block) {

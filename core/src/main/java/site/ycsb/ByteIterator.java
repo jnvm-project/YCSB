@@ -17,6 +17,7 @@
 package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
+import eu.telecomsudparis.jnvm.offheap.OffHeapCachedString;
 import lib.util.persistent.PersistentString;
 
 import java.nio.ByteBuffer;
@@ -159,8 +160,18 @@ public interface ByteIterator extends Iterator<Byte> {
     throw new UnsupportedOperationException("Not implemented");
   }
 
+  default OffHeapCachedString toOffHeapCachedString() {
+    //return new OffHeapCachedString(this.toString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
   default OffHeapStringByteIterator toOffHeapStringByteIterator() {
     //return new OffHeapStringByteIterator(toOffHeapString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  default OffHeapCachedStringByteIterator toOffHeapCachedStringByteIterator() {
+    //return new OffHeapCachedStringByteIterator(toOffHeapCachedString());
     throw new UnsupportedOperationException("Not implemented");
   }
 
