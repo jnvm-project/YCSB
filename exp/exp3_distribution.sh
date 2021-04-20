@@ -15,11 +15,12 @@ ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 bindings="infinispan infinispan-jnvm"
 #bindings="jnvm-vmap jnvm-rmap infinispan"
 recordcounts="3000000"
-minoperationcount=3000000
+minoperationcount=10000000
 defaultfieldcount=10
-fieldcounts="10 100 1000 10000"
-workloads="workloadb"
-distribution="uniform"
+fieldcounts="10"
+workloads="workloada"
+distributions="zipfian uniform exponential sequential latest hotspot"
+loaddistribution="zipfian"
 threads=1
 ycsb_jobs="run"
 dataintegrity="true"
@@ -39,7 +40,6 @@ for binding in $bindings ; do
   for recordcount in $recordcounts ; do
     recordcount=$(( $recordcount * $defaultfieldcount / $fieldcount ))
     minoperationcount=$(( $minoperationcount * $defaultfieldcount / $fieldcount ))
-    [ $binding == "infinispan-jnvm" ] && minoperationcount="100000"
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
                                             || operationcount=$recordcount
     cachesizes=""
@@ -61,13 +61,14 @@ for binding in $bindings ; do
       -p recordcount=$recordcount\
       -p operationcount=$operationcount\
       -p fieldcount=$fieldcount\
-      -p requestdistribution=$distribution\
+      -p requestdistribution=$loaddistribution\
       -p measurementtype=hdrhistogram\
-      -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$distribution.$threads.hdr.log\
-      >> $LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$distribution.$threads.log
+      -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$loaddistribution.$threads.hdr.log\
+      >> $LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$loaddistribution.$threads.log
     for cachesize in $cachesizes ; do
       sed -e 's/size=\".*\"/size=\"'"${cachesize}"'\"/g' -i $ISPN_CFG
       for workload in $workloads ; do
+        for distribution in $distributions ; do
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
             $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh $ycsb_job $binding -P ${YCSB_DIR}/workloads/$workload -threads $threads\
@@ -81,6 +82,7 @@ for binding in $bindings ; do
               -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$threads.hdr.log\
               >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$threads.log
           done
+        done
         done
       done
     done
