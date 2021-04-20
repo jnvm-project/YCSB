@@ -41,6 +41,16 @@ LICENSE file.
       <artifactId>infinispan-core</artifactId>
       <version>${infinispan.version}</version>
     </dependency>
+    <!--dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-persistence-soft-index</artifactId>
+      <version>${infinispan.version}</version>
+    </dependency-->
+    <!--dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-jboss-marshalling</artifactId>
+      <version>${infinispan.version}</version>
+    </dependency-->
     <dependency>
       <groupId>eu.telecomsudparis.jnvm</groupId>
       <artifactId>infinispan-cachestore-jnvm</artifactId>
