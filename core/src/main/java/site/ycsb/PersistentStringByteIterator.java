@@ -33,8 +33,8 @@ import java.util.Map;
  */
 public class PersistentStringByteIterator
     extends PersistentObject
-    implements Comparable<PersistentStringByteIterator>, ComparableWith<PersistentString>,
-               EquatesWith<PersistentString>, ByteIterator {
+    implements Comparable<PersistentStringByteIterator>, ComparableWith<StringByteIterator>,
+               EquatesWith<StringByteIterator>, ByteIterator {
   private static final ObjectField<PersistentString> STR = new ObjectField<>(PersistentString.class);
   private static final ObjectType<PersistentStringByteIterator> TYPE =
       ObjectType.withFields(PersistentStringByteIterator.class, STR);
@@ -166,8 +166,8 @@ public class PersistentStringByteIterator
   }
 
   @Override
-  public int compareWith(PersistentString anotherString) {
-    return str().compareTo(anotherString);
+  public int compareWith(StringByteIterator anotherString) {
+    return str().compareWith(anotherString.toString());
   }
 
   @Override
@@ -176,8 +176,8 @@ public class PersistentStringByteIterator
   }
 
   @Override
-  public boolean equatesWith(PersistentString anotherString) {
-    return str().equals(anotherString);
+  public boolean equatesWith(StringByteIterator anotherString) {
+    return str().equatesWith(anotherString.toString());
   }
 
   @Override

@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * A ByteIterator that iterates through a string.
  */
-public class StringByteIterator implements ByteIterator, Serializable {
+public class StringByteIterator implements ByteIterator, Serializable, Comparable<ByteIterator> {
   private String str;
   private int off;
 
@@ -164,9 +164,21 @@ public class StringByteIterator implements ByteIterator, Serializable {
       return this.str.equals(a.str);
     } else if (o instanceof OffHeapStringByteIterator) {
       OffHeapStringByteIterator a = (OffHeapStringByteIterator) o;
-      return a.toString().equals(this.str);
+      return a.toOffHeapString().equals(this.str);
     }
     return false;
+  }
+
+  @Override
+  public int compareTo(ByteIterator o) {
+    if (o instanceof StringByteIterator) {
+      return str.compareTo(((StringByteIterator) o).str);
+    } else if (o instanceof OffHeapStringByteIterator) {
+      return -((OffHeapStringByteIterator) o).toOffHeapString().compareTo(this.str);
+    } else {
+      //return ByteIterator.super.compareTo(o);
+      throw new UnsupportedOperationException("Not implemented");
+    }
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {

@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * A ByteIterator that iterates through a string.
  */
-public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
+public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, Comparable<ByteIterator> {
   private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapStringByteIterator.class, 15L);
   private OffHeapString str;
   private int off;
@@ -202,6 +202,18 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject {
   }
   public void invalidate() {
     str.invalidate();
+  }
+
+  @Override
+  public int compareTo(ByteIterator o) {
+    if (o instanceof OffHeapStringByteIterator) {
+      return str.compareTo(((OffHeapStringByteIterator) o).str);
+    } else if (o instanceof StringByteIterator) {
+      return str.compareTo(((StringByteIterator) o).toString());
+    } else {
+      //return ByteIterator.super.compareTo(o);
+      throw new UnsupportedOperationException("Not implemented");
+    }
   }
 
 }

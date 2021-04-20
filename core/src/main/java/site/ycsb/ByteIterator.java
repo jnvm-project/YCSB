@@ -48,6 +48,7 @@ import java.util.Iterator;
  *
  */
 public interface ByteIterator extends Iterator<Byte> {
+//public interface ByteIterator extends Iterator<Byte>, Comparable<ByteIterator> {
 
   @Override
   boolean hasNext();
@@ -84,7 +85,7 @@ public interface ByteIterator extends Iterator<Byte> {
   default void reset() {
     throw new UnsupportedOperationException();
   }
-  
+
   /** Consumes remaining contents of this object, and returns them as a string. */
   default String toString1() {
     Charset cset = Charset.forName("UTF-8");
@@ -104,6 +105,53 @@ public interface ByteIterator extends Iterator<Byte> {
     }
     return ret;
   }
+
+/*
+  //Not working
+  default int compareTo(ByteIterator anotherByteIterator) {
+    long len1 = this.bytesLeft();
+    long len2 = anotherByteIterator.bytesLeft();
+    long lim = Math.min(len1, len2);
+
+    long k = 0;
+    while (k < lim) {
+      char c1 = (char) this.nextByte();
+      char c2 = (char) anotherByteIterator.nextByte();
+      if (c1 != c2) {
+        return c1 - c2;
+      }
+      k++;
+    }
+    return (int)(len1 - len2);
+  }
+*/
+
+/*
+  //Interface default can't override Object method
+  default boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    } else if (o == this) {
+      return true;
+    } else if (o instanceof ByteIterator) {
+      ByteIterator a = (ByteIterator) o;
+      long len1 = this.bytesLeft();
+      long len2 = a.bytesLeft();
+      if (len1 != len2) {
+        return false;
+      }
+      int k = 0;
+      while (k<len1) {
+        byte b1 = this.nextByte();
+        byte b2 = a.nextByte();
+        if (b1 != b2) {
+          return false;
+        }
+        k++;
+      }
+    }
+  }
+*/
 
   /** Consumes remaining contents of this object, and returns them as an offheap string. */
   default OffHeapString toOffHeapString() {
