@@ -1,6 +1,6 @@
 #!/bin/bash
 
-experiments="exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent"
+experiments="exp0.exectime exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent exp6.fieldcount"
 
 for experiment in $experiments ; do
 
@@ -9,7 +9,7 @@ EXPDIR=$OUTDIR/$experiment.ref
 LOGDIR=$EXPDIR/log
 DATADIR=$EXPDIR/data
 
-for logfilepath in $LOGDIR/* ; do
+for logfilepath in $LOGDIR/*.log ; do
     logfile=`basename $logfilepath`
 
     binding=`echo $logfile | cut -d "." -f1`
@@ -21,6 +21,7 @@ for logfilepath in $LOGDIR/* ; do
     fieldcount=`echo $logfile | cut -d "." -f7`
     distribution=`echo $logfile | cut -d "." -f8`
     threads=`echo $logfile | cut -d "." -f9`
+    operationcount=`sed -e 's/.*\ operationcount\=\(.*\)\ -p\ fieldcount.*/\1/gp' $logfilepath | head -n 1`
 
     while IFS=", " read col1 col2 col3 ; do
         operation=""
@@ -56,6 +57,16 @@ for logfilepath in $LOGDIR/* ; do
                         ;;
                 esac
                 ;;
+            "[LOAD]"|"[TRANSACTION]")
+                case $col2 in
+                    *"MaxLatency"*)
+                        operation=`echo ${col1:1:-1} | tr '[:upper:]' '[:lower:]'`
+                        value="$col3"
+                        ;;
+                    *)
+                        ;;
+                esac
+                ;;
             *)
                 ;;
         esac
@@ -68,8 +79,8 @@ for logfilepath in $LOGDIR/* ; do
         #dataline="$cachesize,$recordcount,$fieldcount,$threads,$value"
 
         datafile="$experiment.dat"
-        dataheader="#cachesize,recordcount,fieldcount,threads,binding,workload,integrity,distribution,operation,value"
-        dataline="$cachesize,$recordcount,$fieldcount,$threads,$binding,${workload}_${ycsb_job},$integrity,$distribution,$operation,$value"
+        dataheader="#cachesize,recordcount,fieldcount,operationcount,threads,binding,workload,integrity,distribution,operation,value"
+        dataline="$cachesize,$recordcount,$fieldcount,$operationcount,$threads,$binding,${workload}_${ycsb_job},$integrity,$distribution,$operation,$value"
 
         datafilepath="${DATADIR}/${datafile}"
 
