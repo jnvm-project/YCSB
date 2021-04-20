@@ -18,16 +18,26 @@ LICENSE file.
 
 <infinispan
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="urn:infinispan:config:9.4 http://www.infinispan.org/schemas/infinispan-config-9.4.xsd"
-      xmlns="urn:infinispan:config:9.4">
+      xsi:schemaLocation="urn:infinispan:config:11.0 http://www.infinispan.org/schemas/infinispan-config-11.0.xsd"
+      xmlns="urn:infinispan:config:11.0">
 
    <cache-container name="local" default-cache="usertable">
       <local-cache name="usertable">
-         <memory><object size="1"/></memory>
+         <memory><object size="-1"/></memory>
          <persistence passivation="false">
-            <store fetch-state="true" preload="true" read-only="false" purge="false" class="eu.telecomsudparis.jnvm.infinispan.persistence.JNVMStore"/>
+            <soft-index-file-store xmlns="urn:infinispan:config:store:soft-index:11.0" fetch-state="true" preload="true" read-only="false" purge="false">
+              <index path="/pmem0/data" />
+              <data  path="/pmem0/index" sync-writes="true" />
+            </soft-index-file-store>
          </persistence>
       </local-cache>
+      <!--serialization marshaller="org.infinispan.commons.marshall.JavaSerializationMarshaller"-->
+      <serialization marshaller="org.infinispan.jboss.marshalling.commons.GenericJBossMarshaller">
+      <white-list>
+        <regex>site.ycsb.*</regex>
+        <regex>java.util.*</regex>
+      </white-list>
+      </serialization>
    </cache-container>
 
 </infinispan>
