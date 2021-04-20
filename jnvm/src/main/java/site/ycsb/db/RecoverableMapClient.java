@@ -31,16 +31,18 @@ import java.util.Set;
 import javax.xml.ws.Holder;
 
 /**
- * Recoverable hash map client.
+ * Recoverable map client.
  *
  * See {@code jnvm/README.md} for details.
  *
  * @author Anatole Lefort
  */
-public class RecoverableMapClient extends AbstractMapClient {
+public abstract class RecoverableMapClient extends AbstractMapClient {
 
   private static final Phaser INIT = new Phaser(1);
   private static final AtomicInteger INIT_COUNT = new AtomicInteger(0);
+
+  abstract void buildMap();
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one
@@ -56,7 +58,7 @@ public class RecoverableMapClient extends AbstractMapClient {
       INIT.awaitAdvance(0);
     } else {
       if (backend == null) {
-        backend = RecoverableStrongHashMap.recover("usertable", initialCapacity);
+        buildMap();
       }
       INIT.arriveAndAwaitAdvance();
     }
