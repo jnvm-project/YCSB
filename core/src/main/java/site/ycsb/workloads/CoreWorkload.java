@@ -438,7 +438,8 @@ public class CoreWorkload extends Workload {
     fieldnames = new ArrayList<>();
     for (int i = 0; i < fieldcount; i++) {
       if (offheap) {
-        fieldnames.add(new OffHeapStringByteIterator(fieldnameprefix + i));
+        fieldnames.add((OffHeapCachedStringByteIterator)
+            new OffHeapCachedStringByteIterator(fieldnameprefix + i).unique());
       } else if (pcj) {
         fieldnames.add(new PersistentStringByteIterator(fieldnameprefix + i));
       } else {
@@ -572,7 +573,7 @@ public class CoreWorkload extends Workload {
     for (int i = 0; i < fill; i++) {
       prekey += '0';
     }
-    return (offHeap) ? new OffHeapStringByteIterator(prekey + value)
+    return (offHeap) ? new OffHeapCachedStringByteIterator(prekey + value)
            : (pcj) ? new PersistentStringByteIterator(prekey + value)
            : new StringByteIterator(prekey + value);
   }
