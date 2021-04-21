@@ -1,0 +1,16 @@
+#cachesize,recordcount,fieldcount,threads,binding,workload,integrity,distribution,operation,value
+1,3000000,10,default,infinispan-jnvm,workloada_run,true,default,transaction,3.6881170432E10
+1,3000000,10,default,infinispan-jnvm,workloadb_run,true,default,transaction,2.3672193024E10
+1,3000000,10,default,infinispan-jnvm,workloadc_run,true,default,transaction,2.1218787328E10
+1,3000000,10,default,infinispan-jnvm,workloadd_run,true,default,transaction,5.919670272E10
+1,3000000,10,default,infinispan-jnvm,workloadf_run,true,default,transaction,3.951886336E10
+300000,3000000,10,default,infinispan-pcj,workloada_run,true,default,transaction,5.25327138816E11
+300000,3000000,10,default,infinispan-pcj,workloadb_run,true,default,transaction,2.56931004416E11
+300000,3000000,10,default,infinispan-pcj,workloadc_run,true,default,transaction,2.39552954368E11
+300000,3000000,10,default,infinispan-pcj,workloadd_run,true,default,transaction,5.34439264256E11
+300000,3000000,10,default,infinispan-pcj,workloadf_run,true,default,transaction,5.63842383872E11
+300000,3000000,10,default,infinispan,workloada_run,true,default,transaction,4.40667209728E11
+300000,3000000,10,default,infinispan,workloadb_run,true,default,transaction,2.00499789824E11
+300000,3000000,10,default,infinispan,workloadc_run,true,default,transaction,1.6574578688E11
+300000,3000000,10,default,infinispan,workloadd_run,true,default,transaction,1.11440297984E11
+300000,3000000,10,default,infinispan,workloadf_run,true,default,transaction,4.47910772736E11
