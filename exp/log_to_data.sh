@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#experiments="exp0.exectime exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent exp6.fieldcount exp7.marshalling"
-experiments="exp00.heapsize"
+#experiments="exp00.heapsize exp0.exectime exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent exp6.fieldcount exp7.marshalling"
+experiments="exp8.pdt"
 
 for experiment in $experiments ; do
 
@@ -65,7 +65,11 @@ for logfilepath in $LOGDIR/*.log ; do
             "[INSERT]"|"[READ]"|"[UPDATE]"|"[READ-MODIFY-WRITE]"|"[VERIFY]")
                 case $col2 in
                     *"AverageLatency"*)
-                        operation=`echo ${col1:1:-1} | tr '[:upper:]' '[:lower:]'`
+                        operation=`echo ${col1:1:-1}_lat | tr '[:upper:]' '[:lower:]'`
+                        value="$col3"
+                        ;;
+                    *"Operations"*)
+                        operation=`echo ${col1:1:-1}_ops | tr '[:upper:]' '[:lower:]'`
                         value="$col3"
                         ;;
                     *)
