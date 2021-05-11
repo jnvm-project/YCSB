@@ -193,4 +193,12 @@ public class StringByteIterator implements ByteIterator, Serializable, Comparabl
     }
   }
 
+  @Override
+  public OffHeapStringByteIterator copyToNVM() {
+    OffHeapStringByteIterator ohsbi = new OffHeapStringByteIterator(this.str);
+    ohsbi.flush();
+    ohsbi.validate();
+    return ohsbi;
+  }
+
 }

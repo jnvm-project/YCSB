@@ -18,6 +18,7 @@ package site.ycsb;
 
 import eu.telecomsudparis.jnvm.offheap.OffHeapString;
 import eu.telecomsudparis.jnvm.offheap.OffHeapCachedString;
+import eu.telecomsudparis.jnvm.util.persistent.Convertible;
 import lib.util.persistent.PersistentString;
 
 import java.nio.ByteBuffer;
@@ -48,7 +49,7 @@ import java.util.Iterator;
  * Map&lt;String,ByteBuffer&gt;.
  *
  */
-public interface ByteIterator extends Iterator<Byte> {
+public interface ByteIterator extends Iterator<Byte>, Convertible<OffHeapStringByteIterator> {
 //public interface ByteIterator extends Iterator<Byte>, Comparable<ByteIterator> {
 
   @Override
@@ -153,6 +154,12 @@ public interface ByteIterator extends Iterator<Byte> {
     }
   }
 */
+
+  @Override
+  default OffHeapStringByteIterator copyToNVM() {
+    //return new OffHeapStringByteIterator(toOffHeapString());
+    throw new UnsupportedOperationException("Not implemented");
+  }
 
   /** Consumes remaining contents of this object, and returns them as an offheap string. */
   default OffHeapString toOffHeapString() {

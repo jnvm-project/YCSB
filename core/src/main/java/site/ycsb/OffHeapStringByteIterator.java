@@ -202,6 +202,9 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
   public void invalidate() {
     str.invalidate();
   }
+  public void flush() {
+    str.flush();
+  }
 
   @Override
   public int compareTo(ByteIterator o) {
