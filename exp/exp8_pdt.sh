@@ -78,7 +78,9 @@ for binding in $bindings ; do
         -p recordcount=$recordcount\
         -p operationcount=$operationcount\
         -p fieldcount=$fieldcount\
+        -p fieldlength=$fieldlength\
         -p requestdistribution=$distribution\
+        -p measurement.trackjvm=true\
         -p measurementtype=hdrhistogram\
         -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloada.$dataintegrity.$recordcount.$loadcachesize.$fieldcount.$distribution.1.hdr.log\
         >> $LOGDIR/$binding.load.workloada.$dataintegrity.$recordcount.$loadcachesize.$fieldcount.$distribution.1.log
