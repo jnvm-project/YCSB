@@ -427,6 +427,9 @@ public class CoreWorkload extends Workload {
   public void init(Properties p) throws WorkloadException {
     table = new StringByteIterator(p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT));
 
+    OffHeapStringByteIterator i1 = new OffHeapStringByteIterator("i1");
+    OffHeapCachedStringByteIterator i2 = new OffHeapCachedStringByteIterator("i2");
+
     offheap = Boolean.parseBoolean(
         p.getProperty(OFFHEAP_PROPERTY, OFFHEAP_PROPERTY_DEFAULT));
     pcj = Boolean.parseBoolean(
