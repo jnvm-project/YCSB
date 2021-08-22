@@ -30,6 +30,7 @@ import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
 import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableMap;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -109,14 +110,21 @@ public class InfinispanJNVMClient extends DB {
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Map<ByteIterator, ByteIterator> row = null;
-      Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
+      RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator> row = null;
+      Cache<ByteIterator, RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator>> cache =
+          infinispanManager.getCache(cacheName);
       row = cache.get(key);
       synchronized(row) {
         if (row == null) {
           return Status.ERROR;
         } else {
-          OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+          //OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+          for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+            OffHeapStringByteIterator oldVal =
+                row.replaceValue(entry.getKey().toOffHeapStringByteIterator(),
+                            entry.getValue().toOffHeapStringByteIterator());
+            oldVal.invalidate();
+          }
         }
       }
 
@@ -165,7 +173,8 @@ public class InfinispanJNVMClient extends DB {
     String cacheName = table.toString();
     try {
       Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
-      OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<ByteIterator, ByteIterator>) row, values);
+      OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
+          (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
       infinispanManager.getCache(cacheName).put(key, row);
 
 /*

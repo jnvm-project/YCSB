@@ -30,6 +30,7 @@ import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
 import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableMap;
 import eu.telecomsudparis.jnvm.offheap.OffHeap;
 
 import java.io.IOException;
@@ -113,8 +114,8 @@ public class InfinispanJPFAClient extends DB {
     String cacheName = table.toString();
     try {
       OffHeap.startRecording();
-      Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = null;
-      Cache<ByteIterator, Map<OffHeapStringByteIterator, OffHeapStringByteIterator>> cache =
+      RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator> row = null;
+      Cache<ByteIterator, RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator>> cache =
           infinispanManager.getCache(cacheName);
       row = cache.get(key);
       if (row == null) {
@@ -123,9 +124,9 @@ public class InfinispanJPFAClient extends DB {
         for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
           OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
           OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
-          OffHeapStringByteIterator eOldVal = row.put(eKey, eVal);
-          eOldVal.invalidate();
+          OffHeapStringByteIterator eOldVal = row.replaceValue(eKey, eVal);
           eVal.validate();
+          eOldVal.invalidate();
         }
       }
       OffHeap.stopRecording();
