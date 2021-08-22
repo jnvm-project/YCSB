@@ -120,6 +120,40 @@ public class InfinispanJNVMClient extends DB {
         }
       }
 
+/*
+      //Experimental thread-safe row updates using ISPN api to guard row
+      //update closure. Performs worse than synchronized.
+      cache.compute(key, (k, v) -> {
+          Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = v;
+          if (row == null) {
+            return null;
+          } else {
+            for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+              OffHeapStringByteIterator oldVal =
+                  row.replace(entry.getKey().toOffHeapStringByteIterator(),
+                              entry.getValue().toOffHeapStringByteIterator());
+              oldVal.invalidate();
+            }
+          }
+          return v;
+        });
+      cache.merge(key, values, (v1, v2) -> {
+          //Map<? extends ByteIterator, ? extends ByteIterator> row = v1;
+          Map<? super OffHeapStringByteIterator, ? super OffHeapStringByteIterator> row = v1;
+          if (row == null) {
+            System.exit(1);
+            row = new RecoverableStrongHashMap<>(v2.size());
+          }
+          for (Map.Entry<ByteIterator, ByteIterator> entry : v2.entrySet()) {
+            OffHeapStringByteIterator oldVal = (OffHeapStringByteIterator)
+                row.replace(entry.getKey().toOffHeapStringByteIterator(),
+                            entry.getValue().toOffHeapStringByteIterator());
+            oldVal.invalidate();
+          }
+          return (Map<ByteIterator, ByteIterator>) row;
+        });
+*/
+
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
@@ -133,6 +167,21 @@ public class InfinispanJNVMClient extends DB {
       Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
       OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<ByteIterator, ByteIterator>) row, values);
       infinispanManager.getCache(cacheName).put(key, row);
+
+/*
+      //Experimental node insertion - avoids creating the row if already
+      //present. Useless since that's never the case in normal execution.
+      //Performs worse than normal.
+      Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache =
+          infinispanManager.getCache(cacheName);
+      cache.computeIfAbsent(key, (k) -> {
+          Map<? extends ByteIterator, ? extends ByteIterator> row =
+              new RecoverableStrongHashMap<>(values.size());
+          OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<OffHeapStringByteIterator,
+              OffHeapStringByteIterator>) row, values);
+          return (Map<ByteIterator, ByteIterator>) row;
+        });
+*/
 
       return Status.OK;
     } catch (Exception e) {
