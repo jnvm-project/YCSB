@@ -22,6 +22,8 @@ import site.ycsb.generator.*;
 import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.measurements.Measurements;
 
+import eu.telecomsudparis.jnvm.offheap.OffHeap;
+
 import java.io.IOException;
 import javax.xml.ws.Holder;
 import java.util.*;
@@ -427,9 +429,6 @@ public class CoreWorkload extends Workload {
   public void init(Properties p) throws WorkloadException {
     table = new StringByteIterator(p.getProperty(TABLENAME_PROPERTY, TABLENAME_PROPERTY_DEFAULT));
 
-    OffHeapStringByteIterator i1 = new OffHeapStringByteIterator("i1");
-    OffHeapCachedStringByteIterator i2 = new OffHeapCachedStringByteIterator("i2");
-
     offheap = Boolean.parseBoolean(
         p.getProperty(OFFHEAP_PROPERTY, OFFHEAP_PROPERTY_DEFAULT));
     pcj = Boolean.parseBoolean(
@@ -440,6 +439,7 @@ public class CoreWorkload extends Workload {
     final String fieldnameprefix = p.getProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
     fieldnames = new ArrayList<>();
     for (int i = 0; i < fieldcount; i++) {
+      OffHeap.finishInit();
       if (offheap) {
         fieldnames.add((OffHeapCachedStringByteIterator)
             new OffHeapCachedStringByteIterator(fieldnameprefix + i).unique());
