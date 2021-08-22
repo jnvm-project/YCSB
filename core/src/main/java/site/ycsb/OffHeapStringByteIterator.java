@@ -48,14 +48,24 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
    */
   public static void putAllAsStrings(Map<OffHeapString, OffHeapString> out, Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
-      out.put(entry.getKey().toOffHeapString(), entry.getValue().toOffHeapString());
+      OffHeapString prev =
+          out.put(entry.getKey().toOffHeapString(),
+                  entry.getValue().toOffHeapString());
+      if (prev != null) {
+        prev.invalidate();
+      }
     }
   }
 
-  public static void putAllAsOffHeapStringByteIterators(Map<ByteIterator, ByteIterator> out,
+  public static void putAllAsOffHeapStringByteIterators(Map<OffHeapStringByteIterator, OffHeapStringByteIterator> out,
                                                         Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
-      out.put(entry.getKey().toOffHeapStringByteIterator(), entry.getValue().toOffHeapStringByteIterator());
+      OffHeapStringByteIterator prev =
+          out.put(entry.getKey().toOffHeapStringByteIterator(),
+                  entry.getValue().toOffHeapStringByteIterator());
+      if (prev != null) {
+        prev.invalidate();
+      }
     }
   }
 
