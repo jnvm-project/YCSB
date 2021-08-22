@@ -46,6 +46,7 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
    * Put all of the entries of one map into the other, converting
    * ByteIterator values into Strings.
    */
+/*
   public static void putAllAsStrings(Map<OffHeapString, OffHeapString> out, Map<ByteIterator, ByteIterator> in) {
     for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
       OffHeapString prev =
@@ -56,6 +57,7 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
       }
     }
   }
+*/
 
   public static void putAllAsOffHeapStringByteIterators(Map<OffHeapStringByteIterator, OffHeapStringByteIterator> out,
                                                         Map<ByteIterator, ByteIterator> in) {
@@ -158,6 +160,13 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
   public OffHeapStringByteIterator toOffHeapStringByteIterator() {
     return this;
   }
+
+/*
+  @Override
+  public OffHeapStringByteIterator copyToNVM() {
+    return this;
+  }
+*/
 
   public boolean equals(Object o) {
     if (o == null) {

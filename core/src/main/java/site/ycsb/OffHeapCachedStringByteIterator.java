@@ -21,21 +21,12 @@ import eu.telecomsudparis.jnvm.offheap.OffHeap;
 import eu.telecomsudparis.jnvm.offheap.MemoryBlockHandle;
 import eu.telecomsudparis.jnvm.offheap.OffHeapCachedString;
 
-import java.util.Map;
-
 /**
  * A ByteIterator that iterates through a string.
  */
 public class OffHeapCachedStringByteIterator extends OffHeapStringByteIterator implements Comparable<ByteIterator> {
   private static final long CLASS_ID = OffHeap.Klass.registerUserKlass(OffHeapCachedStringByteIterator.class);
 
-  public static void putAllAsOffHeapStringByteIterators(Map<ByteIterator, ByteIterator> out,
-                                                        Map<ByteIterator, ByteIterator> in) {
-    for (Map.Entry<ByteIterator, ByteIterator> entry : in.entrySet()) {
-      out.put(entry.getKey().toOffHeapCachedStringByteIterator(),
-              entry.getValue().toOffHeapCachedStringByteIterator());
-    }
-  }
 
   protected OffHeapCachedStringByteIterator(OffHeapCachedString s) {
     super(s);
