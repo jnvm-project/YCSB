@@ -112,10 +112,12 @@ public class InfinispanJNVMClient extends DB {
       Map<ByteIterator, ByteIterator> row = null;
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
-      if (row == null) {
-        return Status.ERROR;
-      } else {
-        OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+      synchronized(row) {
+        if (row == null) {
+          return Status.ERROR;
+        } else {
+          OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+        }
       }
 
       return Status.OK;
