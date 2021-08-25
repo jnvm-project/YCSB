@@ -15,8 +15,8 @@ ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 ISPN_AUTO_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-autopersist-config.xml"
 ISPN_PCJ_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-pcj-config.xml"
 
-bindings="infinispan-autopersist infinispan"
-#bindings="infinispan infinispan-jnvm infinispan-jpfa infinispan-pcj"
+#bindings="infinispan-autopersist infinispan"
+bindings="infinispan infinispan-jnvm infinispan-jpfa infinispan-pcj"
 recordcounts="1000000"
 #recordcounts="3000000"
 minoperationcount=10000000
