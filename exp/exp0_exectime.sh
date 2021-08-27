@@ -31,6 +31,8 @@ ycsb_jobs="run"
 dataintegrity="true"
 ycsb_preload="-preload"
 
+n_run=1
+#n_run=6
 m="default"
 p="default"
 fs="none"
@@ -119,7 +121,7 @@ for binding in $bindings ; do
       for workload in $workloads ; do
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
-          for i in `seq 1 6` ; do
+          for i in `seq 1 $n_run` ; do
             [ ! -z $ycsb_preload ] && rm -fr /pmem{0,1,2,3}/* /dev/shm/* /blackhole/*
             $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh $ycsb_job $binding -P ${YCSB_DIR}/workloads/$workload $ycsb_preload -s -threads $thread\
               -p dataintegrity=$integrity\

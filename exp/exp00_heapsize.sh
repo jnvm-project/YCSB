@@ -33,6 +33,8 @@ memory="default preferred interleaved numa"
 #oops="default compressed expended"
 oops="default expended"
 
+n_run=1
+#n_run=6
 loadcacheproportion="1"
 cacheproportions="1 10 100"
 defaultreadonly="false"
@@ -121,7 +123,7 @@ for binding in $bindings ; do
       for workload in $workloads ; do
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
-          for i in `seq 1 6` ; do
+          for i in `seq 1 $n_run` ; do
             $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh $ycsb_job $binding -P ${YCSB_DIR}/workloads/$workload -threads $thread\
               -p dataintegrity=$integrity\
               -p offheap=$offheap\

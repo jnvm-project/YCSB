@@ -40,6 +40,8 @@ oops="default"
 #memory="default preferred interleaved numa"
 #oop="default compressed expended"
 
+n_run=1
+#n_run=6
 loadcacheproportion="1"
 cacheproportions="10"
 #cacheproportions="100"
@@ -145,7 +147,7 @@ for binding in $bindings ; do
       for workload in $workloads ; do
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
-          for i in `seq 1 6` ; do
+          for i in `seq 1 $n_run` ; do
             rm -fr /pmem{0,1,2,3}/*
             rm -fr /dev/shm/*
             rm -fr /blackhole/*
