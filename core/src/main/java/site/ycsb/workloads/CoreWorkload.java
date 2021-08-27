@@ -439,8 +439,9 @@ public class CoreWorkload extends Workload {
     final String fieldnameprefix = p.getProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
     fieldnames = new ArrayList<>();
     for (int i = 0; i < fieldcount; i++) {
-      OffHeap.finishInit();
       if (offheap) {
+        //TODO AutoPersistMap can not recover OffHeap - should add another switch parameter to ycsb
+        OffHeap.finishInit();
         fieldnames.add((OffHeapCachedStringByteIterator)
             new OffHeapCachedStringByteIterator(fieldnameprefix + i).unique());
       } else if (pcj) {
