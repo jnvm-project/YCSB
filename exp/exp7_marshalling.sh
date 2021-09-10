@@ -19,6 +19,8 @@ mkdir -p $EXPDIR $LOGDIR $DATADIR
 
 YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
+ISPN_DFLT_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml.tmpl"
+ISPN_VOLATILE_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-volatile-config.xml.tmpl"
 
 bindings="infinispan"
 recordcounts="1000000"
@@ -33,9 +35,7 @@ threads="1"
 ycsb_jobs="run"
 ycsb_preload="-preload"
 dataintegrity="true" #false"
-filesystems="pmem0 tmpfs"
-#filesystems="none"
-#filesystems="pmem0 tmpfs nullfsvfs"
+filesystems="none pmem0 tmpfs nullfsvfs"
 
 memory="default"
 oops="default"
@@ -89,6 +89,7 @@ for binding in $bindings ; do
       #FileSystem cachestore location
       for fs in $filesystems ; do
         cachedir="";
+        ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
         case $fs in
           pmem0)
             cachedir="/pmem0/";;
@@ -96,6 +97,8 @@ for binding in $bindings ; do
             cachedir="/dev/shm";;
           nullfsvfs)
             cachedir="/blackhole/";;
+          none)
+            ISPN_CFG_TMPL=$ISPN_VOLATILE_CFG_TMPL;;
           *)
             cachedir="/pmem0/";;
         esac
@@ -139,12 +142,11 @@ for binding in $bindings ; do
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
     #for readonly in "true" "false" ; do
     #for preload in "true" "false" ; do
-      sed -e 's/size=\".*\"/size=\"'"${cachesize}"'\"/g' -i $ISPN_CFG
-      sed -e 's/read-only=\"true\"/read-only=\"'"${readonly}"'\"/g' \
-          -e 's/read-only=\"false\"/read-only=\"'"${readonly}"'\"/g' -i $ISPN_CFG
-      sed -e 's/preload=\"true\"/preload=\"'"${preload}"'\"/g' \
-          -e 's/preload=\"false\"/preload=\"'"${preload}"'\"/g' -i $ISPN_CFG
-      sed -e 's;path=\".*\";path=\"'"${cachedir}"'\";g' -i $ISPN_CFG
+      sed -e 's;%cachesize%;'${cachesize}';g' \
+          -e 's;%readonly%;'${readonly}';g' \
+          -e 's;%preload%;'${preload}';g' \
+          -e 's;%cachedir%;'${cachedir}';g' \
+          $ISPN_CFG_TMPL > $ISPN_CFG
     for thread in $threads ; do
       for workload in $workloads ; do
         for integrity in $dataintegrity ; do
