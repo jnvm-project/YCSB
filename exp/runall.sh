@@ -8,4 +8,4 @@
 ./exp6_fieldcount.sh
 ./exp7_marshalling.sh
 ./exp8_pdt.sh
-#./exp00_heapsize.sh
+./exp00_heapsize.sh
