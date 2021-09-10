@@ -35,17 +35,17 @@ ycsb_preload="-preload"
 
 n_run=1
 #n_run=6
-m="default"
-p="default"
-fs="none"
 
 loadcacheproportion="10"
-cacheproportions="100"
-#cacheproportions="10"
+#cacheproportions="100"
+cacheproportions="10"
 defaultreadonly="false"
 defaultpreload="true"
 
 for binding in $bindings ; do
+  m="default"
+  p="default"
+  fs="none"
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true
     pcj=false
@@ -66,6 +66,7 @@ for binding in $bindings ; do
   else
     offheap=false
     pcj=false
+    fs="pmem0"
     ISPN_CFG=$ISPN_DFLT_CFG
   fi
   for fieldcount in $fieldcounts ; do
@@ -84,9 +85,9 @@ for binding in $bindings ; do
     elif [ $binding == "infinispan-autopersist" ] ; then
       cachesizes="1"
       loadcachesize="1"
-    elif [ $binding == "infinispan-pcj" ] ; then
-      cachesizes="1"
-      loadcachesize="1"
+#    elif [ $binding == "infinispan-pcj" ] ; then
+#      cachesizes="1"
+#      loadcachesize="1"
     else
       for cacheproportion in $cacheproportions ; do
         cachesizes=$cachesizes" "$(( $recordcount * $cacheproportion / 100 ))

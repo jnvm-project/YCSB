@@ -31,9 +31,14 @@ threads="10"
 ycsb_jobs="run"
 dataintegrity="true" #false"
 
+#optional control runs
 memory="default preferred interleaved numa"
 #oops="default compressed expended"
 oops="default expended"
+
+#only default is used in graphs currently
+memory="default"
+oops="default"
 
 n_run=1
 #n_run=6

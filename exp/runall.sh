@@ -4,8 +4,8 @@
 ./exp2_keycount.sh
 ##./exp3_distribution.sh
 ./exp4_objsize.sh
-./exp5_concurrent.sh
 ./exp6_fieldcount.sh
 ./exp7_marshalling.sh
+./exp5_concurrent.sh
 ./exp8_pdt.sh
 ./exp00_heapsize.sh

@@ -15,7 +15,6 @@ ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 
 bindings="infinispan infinispan-jnvm"
-#bindings="jnvm-vmap jnvm-rmap infinispan"
 recordcounts="3000000"
 minoperationcount=3000000
 fieldcounts="10"
@@ -25,8 +24,10 @@ threads=1
 ycsb_jobs="run"
 dataintegrity="true"
 
-loadcacheproportion="100"
-cacheproportions=`seq 10 10 100`
+loadcacheproportion="10"
+cacheproportions="10 "`seq 20 20 80`" 90 100"
+#We only plot for 10,20,40,60,80,90,100% cache
+#cacheproportions=`seq 10 10 100`
 
 for binding in $bindings ; do
   if [ $binding == "infinispan-jnvm" ] ; then

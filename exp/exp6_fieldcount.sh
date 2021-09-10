@@ -15,7 +15,6 @@ ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 
 bindings="infinispan infinispan-jnvm"
-#bindings="jnvm-vmap jnvm-rmap infinispan"
 recordcounts="3000000"
 minoperationcount=3000000
 defaultfieldcount=10

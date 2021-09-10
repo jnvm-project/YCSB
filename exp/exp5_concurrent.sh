@@ -16,8 +16,7 @@ ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 ISPN_DFLT_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml.tmpl"
 ISPN_JNVM_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml.tmpl"
 
-bindings="infinispan"
-#bindings="infinispan infinispan-jnvm"
+bindings="infinispan infinispan-jnvm"
 recordcounts="1000000"
 minoperationcount=6000000
 maxoperationcount=60000000
@@ -26,6 +25,7 @@ fieldcounts="10"
 defaultfieldlength="100"
 fieldlengths="100"
 workloads="workloada workloadc"
+#We do not plot the 4 workload graph
 #workloads="workloada updatew workloadc insertw"
 distribution="zipfian"
 threads="1 2 "`seq 4 4 20`
@@ -38,12 +38,10 @@ n_run=1
 #n_run=6
 m="default"
 p="default"
-fs="volatile"
-#fs="none"
+fs="none"
 
 loadcacheproportion="10"
-cacheproportions="100"
-#cacheproportions="10 100"
+cacheproportions="10 100"
 defaultreadonly="false"
 defaultpreload="true"
 cachedir="/pmem0/"
@@ -105,10 +103,10 @@ for binding in $bindings ; do
       #[ $workload == "insertw" ] && operationcount=$recordcount && rm -fr /pmem{0,1,2,3}/*
       #[ $workload != "insertw" ] && operationcount=$minoperationcount
     for cachesize in $cachesizes ; do
-      #[ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
+      [ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && operationcount="30000000"
       preload=$defaultpreload
-      readonly=$defaultreadonly
+      #readonly=$defaultreadonly
       sed -e 's;%cachesize%;'${cachesize}';g' \
           -e 's;%readonly%;'${readonly}';g' \
           -e 's;%preload%;'${preload}';g' \

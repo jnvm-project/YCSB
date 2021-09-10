@@ -35,7 +35,7 @@ threads="1"
 ycsb_jobs="run"
 ycsb_preload="-preload"
 dataintegrity="true" #false"
-filesystems="none pmem0 tmpfs nullfsvfs"
+filesystems="none tmpfs nullfsvfs pmem0"
 
 memory="default"
 oops="default"
@@ -45,8 +45,9 @@ oops="default"
 n_run=1
 #n_run=6
 loadcacheproportion="1"
-cacheproportions="10"
-#cacheproportions="100"
+cacheproportions="100"
+#10% cache is not supported with volatile
+#cacheproportions="10"
 defaultreadonly="false"
 defaultpreload="true"
 

@@ -15,11 +15,10 @@ ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
 
 bindings="infinispan infinispan-jnvm"
-#bindings="jnvm-vmap jnvm-rmap infinispan"
-recordcounts="10000 100000 1000000 5000000 10000000"
+recordcounts="10000 100000 1000000 10000000"
 minoperationcount=3000000
 fieldcounts="10"
-workloads="workloada workloadb workloadc"
+workloads="workloada"
 distribution="zipfian"
 threads=1
 ycsb_jobs="run"
