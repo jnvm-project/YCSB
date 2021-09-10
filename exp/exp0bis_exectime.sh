@@ -1,6 +1,7 @@
+numa_node=${NUMA_NODE:-0}
 export JAVA_HOME=/home/anatole/jdk8u/build/linux-x86_64-normal-server-release/jdk
 export JAVA_OPTS="-Xmx100g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=15" #-agentlib:hprof=cpu=samples"
-PIN_CPU="numactl -N 0 -- "
+PIN_CPU="numactl -N $numa_node --"
 
 OUTDIR="./out"
 EXPDIR=$OUTDIR/exp0bis.exectime.ref

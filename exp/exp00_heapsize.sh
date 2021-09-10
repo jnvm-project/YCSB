@@ -1,3 +1,4 @@
+numa_node=${NUMA_NODE:-0}
 export JAVA_HOME=/home/anatole/jdk8u/build/linux-x86_64-normal-server-release/jdk
 #export JAVA_OPTS="-Xmx100g -XX:+UseG1GC -XX:+UseNUMA -XX:InitiatingHeapOccupancyPercent=0" #-agentlib:hprof=cpu=samples"
 #PIN_CPU=""
@@ -57,7 +58,7 @@ for binding in $bindings ; do
     #YCSB LOAD, once per record/field count and binding, with default parameters
     rm -fr /pmem{0,1,2,3}/*
     export JAVA_OPTS="-Xmx20g -XX:+UseG1GC"
-    PIN_CPU="numactl -p 0 -N 0"
+    PIN_CPU="numactl -p $numa_node -N $numa_node"
     sed -e 's/size=\".*\"/size=\"'"${loadcachesize}"'\"/g' -i $ISPN_CFG
     sed -e 's/read-only=\"true\"/read-only=\"'"${defaultreadonly}"'\"/g' \
         -e 's/read-only=\"false\"/read-only=\"'"${defaultreadonly}"'\"/g' -i $ISPN_CFG
@@ -102,10 +103,10 @@ for binding in $bindings ; do
           *)
             oop="";;
         esac
-      [ $cachesize -eq 1 ] && export JAVA_OPTS="-Xmx15g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N 0 -- " #15M entries
-      [ $cachesize -eq 150000 ] && export JAVA_OPTS="-Xmx20g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N 0 -- " #15M entries
-      [ $cachesize -eq 1500000 ] && export JAVA_OPTS="-Xmx30g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N 0 -- " #15M entries
-      [ $cachesize -eq 15000000 ] && export JAVA_OPTS="-Xmx100g -XX:+UseG1GC $numa" && PIN_CPU="numactl $mem -N 0 -- " #15M entries
+      [ $cachesize -eq 1 ] && export JAVA_OPTS="-Xmx15g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N $numa_node -- " #15M entries
+      [ $cachesize -eq 150000 ] && export JAVA_OPTS="-Xmx20g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N $numa_node -- " #15M entries
+      [ $cachesize -eq 1500000 ] && export JAVA_OPTS="-Xmx30g -XX:+UseG1GC $oop" && PIN_CPU="numactl $mem -N $numa_node -- " #15M entries
+      [ $cachesize -eq 15000000 ] && export JAVA_OPTS="-Xmx100g -XX:+UseG1GC $numa" && PIN_CPU="numactl $mem -N $numa_node -- " #15M entries
       #[ $cachesize -eq 1500000 ] && export JAVA_OPTS="-Xmx25g -XX:+UseG1GC" && PIN_CPU="taskset -c 0-19,80-99" #10M entries
       #readonly="true"
       readonly=$defaultreadonly

@@ -1,6 +1,7 @@
+numa_node=${NUMA_NODE:-0}
 export JAVA_HOME=/home/anatole/jdk8u/build/linux-x86_64-normal-server-release/jdk
 export JAVA_OPTS="-Xmx20g -XX:+UseG1GC" #-agentlib:hprof=cpu=samples"
-PIN_CPU="taskset -c 0-19,80-99"
+PIN_CPU="numactl -N $numa_node --"
 
 OUTDIR="./out"
 EXPDIR=$OUTDIR/exp4.objsize.ref
