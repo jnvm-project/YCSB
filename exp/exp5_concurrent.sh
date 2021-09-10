@@ -13,6 +13,8 @@ mkdir -p $EXPDIR $LOGDIR $DATADIR
 YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
+ISPN_DFLT_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml.tmpl"
+ISPN_JNVM_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml.tmpl"
 
 bindings="infinispan"
 #bindings="infinispan infinispan-jnvm"
@@ -44,16 +46,19 @@ cacheproportions="100"
 #cacheproportions="10 100"
 defaultreadonly="false"
 defaultpreload="true"
+cachedir="/pmem0/"
 
 for binding in $bindings ; do
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true
     pcj=false
     ISPN_CFG=$ISPN_JNVM_CFG
+    ISPN_CFG_TMPL=$ISPN_JNVM_CFG_TMPL
   else
     offheap=false
     pcj=false
     ISPN_CFG=$ISPN_DFLT_CFG
+    ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
   fi
   for fieldcount in $fieldcounts ; do
   for fieldlength in $fieldlengths ; do
@@ -74,9 +79,11 @@ for binding in $bindings ; do
 
     rm -fr /pmem{0,1,2,3}/* /dev/shm/* /blackhole/*
     if [ -z $ycsb_preload ] ; then
-    sed -e 's/size=\".*\"/size=\"'"${loadcachesize}"'\"/g' -i $ISPN_CFG
-    sed -e 's/read-only=\"true\"/read-only=\"'"${defaultreadonly}"'\"/g' \
-        -e 's/read-only=\"false\"/read-only=\"'"${defaultreadonly}"'\"/g' -i $ISPN_CFG
+    sed -e 's;%cachesize%;'${loadcachesize}';g' \
+        -e 's;%readonly%;'${defaultreadonly}';g' \
+        -e 's;%preload%;'${defaultpreload}';g' \
+        -e 's;%cachedir%;'${cachedir}';g' \
+        $ISPN_CFG_TMPL > $ISPN_CFG
     $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh load $binding -P ${YCSB_DIR}/workloads/workloada -threads 1\
       -p dataintegrity=true\
       -p offheap=$offheap\
@@ -102,9 +109,11 @@ for binding in $bindings ; do
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && operationcount="30000000"
       preload=$defaultpreload
       readonly=$defaultreadonly
-      sed -e 's/size=\".*\"/size=\"'"${cachesize}"'\"/g' -i $ISPN_CFG
-      #sed -e 's/read-only=\"true\"/read-only=\"'"${readonly}"'\"/g' \
-      #    -e 's/read-only=\"false\"/read-only=\"'"${readonly}"'\"/g' -i $ISPN_CFG
+      sed -e 's;%cachesize%;'${cachesize}';g' \
+          -e 's;%readonly%;'${readonly}';g' \
+          -e 's;%preload%;'${preload}';g' \
+          -e 's;%cachedir%;'${cachedir}';g' \
+          $ISPN_CFG_TMPL > $ISPN_CFG
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
           for i in `seq 1 $n_run` ; do
