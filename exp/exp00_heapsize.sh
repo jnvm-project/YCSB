@@ -15,6 +15,7 @@ mkdir -p $EXPDIR $LOGDIR $DATADIR
 
 YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
+ISPN_DFLT_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml.tmpl"
 
 bindings="infinispan"
 recordcounts="15000000"
@@ -40,10 +41,12 @@ loadcacheproportion="1"
 cacheproportions="1 10 100"
 defaultreadonly="false"
 defaultpreload="true"
+cachedir="/pmem0/"
 
 for binding in $bindings ; do
   offheap=false
   ISPN_CFG=$ISPN_DFLT_CFG
+  ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
   for fieldcount in $fieldcounts ; do
   for recordcount in $recordcounts ; do
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
@@ -59,9 +62,11 @@ for binding in $bindings ; do
     rm -fr /pmem{0,1,2,3}/*
     export JAVA_OPTS="-Xmx20g -XX:+UseG1GC"
     PIN_CPU="numactl -p $numa_node -N $numa_node"
-    sed -e 's/size=\".*\"/size=\"'"${loadcachesize}"'\"/g' -i $ISPN_CFG
-    sed -e 's/read-only=\"true\"/read-only=\"'"${defaultreadonly}"'\"/g' \
-        -e 's/read-only=\"false\"/read-only=\"'"${defaultreadonly}"'\"/g' -i $ISPN_CFG
+    sed -e 's;%cachesize%;'${loadcachesize}';g' \
+        -e 's;%readonly%;'${defaultreadonly}';g' \
+        -e 's;%preload%;'${defaultpreload}';g' \
+        -e 's;%cachedir%;'${cachedir}';g' \
+        $ISPN_CFG_TMPL > $ISPN_CFG
     $PIN_CPU ${YCSB_DIR}/bin/ycsb.sh load $binding -P ${YCSB_DIR}/workloads/workloadf -threads 10\
       -p dataintegrity=true\
       -p offheap=$offheap\
@@ -115,11 +120,11 @@ for binding in $bindings ; do
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
     #for readonly in "true" "false" ; do
     #for preload in "true" "false" ; do
-      sed -e 's/size=\".*\"/size=\"'"${cachesize}"'\"/g' -i $ISPN_CFG
-      sed -e 's/read-only=\"true\"/read-only=\"'"${readonly}"'\"/g' \
-          -e 's/read-only=\"false\"/read-only=\"'"${readonly}"'\"/g' -i $ISPN_CFG
-      sed -e 's/preload=\"true\"/preload=\"'"${preload}"'\"/g' \
-          -e 's/preload=\"false\"/preload=\"'"${preload}"'\"/g' -i $ISPN_CFG
+      sed -e 's;%cachesize%;'${cachesize}';g' \
+          -e 's;%readonly%;'${readonly}';g' \
+          -e 's;%preload%;'${preload}';g' \
+          -e 's;%cachedir%;'${cachedir}';g' \
+          $ISPN_CFG_TMPL > $ISPN_CFG
     for thread in $threads ; do
       for workload in $workloads ; do
         for integrity in $dataintegrity ; do
