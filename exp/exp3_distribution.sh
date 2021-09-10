@@ -1,6 +1,7 @@
 numa_node=${NUMA_NODE:-0}
+jheap_size=${JHEAP_SIZE:-20g}
 export JAVA_HOME=/home/anatole/jdk8u/build/linux-x86_64-normal-server-release/jdk
-export JAVA_OPTS="-Xmx20g -XX:+UseG1GC" #-agentlib:hprof=cpu=samples"
+export JAVA_OPTS="-Xmx${jheap_size} -XX:+UseG1GC" #-agentlib:hprof=cpu=samples"
 PIN_CPU="numactl -N $numa_node --"
 
 OUTDIR="./out"
