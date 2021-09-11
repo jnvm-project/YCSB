@@ -46,6 +46,13 @@ defaultreadonly="false"
 defaultpreload="true"
 cachedir="/pmem0/"
 
+#external parameter overrides
+if [ $EXP_PRESET == "tiny" ] ; then
+recordcounts="10000"
+minoperationcount="10000"
+maxoperationcount="100000"
+fi
+
 for binding in $bindings ; do
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true

@@ -42,6 +42,12 @@ cacheproportions="10"
 defaultreadonly="false"
 defaultpreload="true"
 
+#external parameter overrides
+if [ $EXP_PRESET == "tiny" ] ; then
+recordcounts="10000"
+minoperationcount="10000"
+fi
+
 for binding in $bindings ; do
   m="default"
   p="default"

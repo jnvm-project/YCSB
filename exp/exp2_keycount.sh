@@ -28,6 +28,12 @@ dataintegrity="true"
 loadcacheproportion="10"
 cacheproportions="10"
 
+#external parameter overrides
+if [ $EXP_PRESET == "tiny" ] ; then
+recordcounts="100 1000 10000 100000"
+minoperationcount="10000"
+fi
+
 for binding in $bindings ; do
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true

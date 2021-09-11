@@ -43,6 +43,12 @@ fs="none"
 readonly="false"
 preload="true"
 
+#external parameter overrides
+if [ $EXP_PRESET == "tiny" ] ; then
+recordcounts="10000"
+minoperationcount="10000"
+fi
+
 for binding in $bindings ; do
   offheap=false
   #ycsb_preload=""

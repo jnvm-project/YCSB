@@ -51,6 +51,12 @@ cacheproportions="100"
 defaultreadonly="false"
 defaultpreload="true"
 
+#external parameter overrides
+if [ $EXP_PRESET == "tiny" ] ; then
+recordcounts="10000"
+minoperationcount="10000"
+fi
+
 for binding in $bindings ; do
   offheap=false
   ISPN_CFG=$ISPN_DFLT_CFG
