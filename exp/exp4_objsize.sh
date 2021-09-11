@@ -48,7 +48,7 @@ for binding in $bindings ; do
   for recordcount in $recordcounts ; do
     recordcount=$(( $recordcount * $defaultfieldlength / $fieldlength ))
     minoperationcount=$(( $minoperationcount * $defaultfieldlength / $fieldlength ))
-    [ $binding == "infinispan-jnvm" ] && minoperationcount="100000"
+    #$[ $binding == "infinispan-jnvm" ] && minoperationcount="100000"
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
                                             || operationcount=$recordcount
     cachesizes=""
