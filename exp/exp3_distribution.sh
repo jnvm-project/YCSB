@@ -20,6 +20,7 @@ recordcounts="3000000"
 minoperationcount=10000000
 defaultfieldcount=10
 fieldcounts="10"
+fieldlengths="100"
 workloads="workloada"
 distributions="zipfian uniform exponential sequential latest hotspot"
 loaddistribution="zipfian"
@@ -39,6 +40,7 @@ for binding in $bindings ; do
     ISPN_CFG=$ISPN_DFLT_CFG
   fi
   for fieldcount in $fieldcounts ; do
+  for fieldlength in $fieldlengths ; do
   for recordcount in $recordcounts ; do
     recordcount=$(( $recordcount * $defaultfieldcount / $fieldcount ))
     minoperationcount=$(( $minoperationcount * $defaultfieldcount / $fieldcount ))
@@ -63,6 +65,7 @@ for binding in $bindings ; do
       -p recordcount=$recordcount\
       -p operationcount=$operationcount\
       -p fieldcount=$fieldcount\
+      -p fieldlength=$fieldlength\
       -p requestdistribution=$loaddistribution\
       -p measurementtype=hdrhistogram\
       -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$loaddistribution.$threads.hdr.log\
@@ -79,15 +82,17 @@ for binding in $bindings ; do
               -p recordcount=$recordcount\
               -p operationcount=$operationcount\
               -p fieldcount=$fieldcount\
+              -p fieldlength=$fieldlength\
               -p requestdistribution=$distribution\
               -p measurementtype=hdrhistogram\
-              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$threads.hdr.log\
-              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$threads.log
+              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$threads.hdr.log\
+              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$threads.log
           done
         done
         done
       done
     done
+  done
   done
   done
 done

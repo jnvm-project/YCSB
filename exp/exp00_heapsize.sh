@@ -23,7 +23,7 @@ recordcounts="15000000"
 #minoperationcount=30000000 #singleThread
 minoperationcount=100000000
 fieldcounts="10"
-fieldlength="100"
+fieldlengths="100"
 workloads="workloadf"
 distribution="zipfian"
 threads="10"
@@ -53,6 +53,7 @@ for binding in $bindings ; do
   ISPN_CFG=$ISPN_DFLT_CFG
   ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
   for fieldcount in $fieldcounts ; do
+  for fieldlength in $fieldlengths ; do
   for recordcount in $recordcounts ; do
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
                                             || operationcount=$recordcount
@@ -78,6 +79,7 @@ for binding in $bindings ; do
       -p recordcount=$recordcount\
       -p operationcount=$operationcount\
       -p fieldcount=$fieldcount\
+      -p fieldlength=$fieldlength\
       -p requestdistribution=$distribution\
       -p measurementtype=hdrhistogram\
       -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloadf."true".$recordcount.$loadcachesize.$fieldcount.$distribution.10.hdr.log\
@@ -141,20 +143,23 @@ for binding in $bindings ; do
               -p recordcount=$recordcount\
               -p operationcount=$operationcount\
               -p fieldcount=$fieldcount\
+              -p fieldlength=$fieldlength\
               -p requestdistribution=$distribution\
               -p measurement.histogram.verbose=true\
               -p measurementtype=hdrhistogram\
-              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$thread.$readonly.$preload.$m.$p.r$i.hdr.log\
-              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$thread.$readonly.$preload.$m.$p.r$i.log
+              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$thread.$readonly.$preload.$m.$p.r$i.hdr.log\
+              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$thread.$readonly.$preload.$m.$p.r$i.log
           done
           done
         done
       done
+    done
     #done
     #done
     done
     done
     done
+  done
   done
   done
 done

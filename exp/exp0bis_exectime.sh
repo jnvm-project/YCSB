@@ -59,6 +59,7 @@ for binding in $bindings ; do
     ISPN_CFG=$ISPN_DFLT_CFG
   fi
   for fieldcount in $fieldcounts ; do
+  for fieldlength in $fieldlengths ; do
   for recordcount in $recordcounts ; do
     #[ $binding == "infinispan-jnvm" ] && minoperationcount="3000000"
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
@@ -93,6 +94,7 @@ for binding in $bindings ; do
       -p recordcount=$recordcount\
       -p operationcount=$operationcount\
       -p fieldcount=$fieldcount\
+      -p fieldlength=$fieldlength\
       -p measurementtype=hdrhistogram\
       -p hdrhistogram.output.path=$LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$distribution.1.hdr.log\
       >> $LOGDIR/$binding.load.workloada."true".$recordcount.$loadcachesize.$fieldcount.$distribution.1.log
@@ -112,14 +114,16 @@ for binding in $bindings ; do
               -p recordcount=$recordcount\
               -p operationcount=$operationcount\
               -p fieldcount=$fieldcount\
+              -p fieldlength=$fieldlength\
               -p measurementtype=hdrhistogram\
-              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$thread.hdr.log\
-              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$distribution.$thread.log
+              -p hdrhistogram.output.path=$LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$thread.hdr.log\
+              >> $LOGDIR/$binding.$ycsb_job.$workload.$integrity.$recordcount.$cachesize.$fieldcount.$fieldlength.$distribution.$thread.log
           done
         done
       done
     done
     done
+  done
   done
   done
 done
