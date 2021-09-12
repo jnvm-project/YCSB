@@ -1,7 +1,8 @@
 #!/bin/bash
 
 [ $# -ge 1 ] && experiments="$@"\
-             || experiments="exp00.heapsize exp0.exectime exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent exp6.fieldcount exp7.marshalling exp8.pdt"
+             || experiments="exp00.heapsize exp0.exectime exp1.cachesize exp2.keycount exp4.objsize exp5.concurrent exp6.fieldcount exp7.marshalling exp8.pdt"
+             #|| experiments="exp00.heapsize exp0.exectime exp1.cachesize exp2.keycount exp3.distribution exp4.objsize exp5.concurrent exp6.fieldcount exp7.marshalling exp8.pdt"
 
 for experiment in $experiments ; do
 
