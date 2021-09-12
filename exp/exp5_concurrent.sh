@@ -59,11 +59,13 @@ for binding in $bindings ; do
     pcj=false
     ISPN_CFG=$ISPN_JNVM_CFG
     ISPN_CFG_TMPL=$ISPN_JNVM_CFG_TMPL
+    fs="none"
   else
     offheap=false
     pcj=false
     ISPN_CFG=$ISPN_DFLT_CFG
     ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
+    fs="pmem0"
   fi
   for fieldcount in $fieldcounts ; do
   for fieldlength in $fieldlengths ; do
@@ -111,6 +113,7 @@ for binding in $bindings ; do
       #[ $workload != "insertw" ] && operationcount=$minoperationcount
     for cachesize in $cachesizes ; do
       [ $(( $cachesize / $recordcount )) -eq 1 ] && readonly="true" || readonly=$defaultreadonly
+      [ $(( $cachesize / $recordcount )) -eq 1 ] && fs="none" || fs="pmem0"
       #[ $(( $cachesize / $recordcount )) -eq 1 ] && operationcount="30000000"
       preload=$defaultpreload
       #readonly=$defaultreadonly
