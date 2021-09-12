@@ -122,11 +122,12 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
-    Map<ByteIterator, ByteIterator> row = backend.get(key);
+    Map<? extends ByteIterator, ? extends ByteIterator> row = backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
+    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
+            (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
 
     return Status.OK;
   }
@@ -147,7 +148,8 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
   @Override
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
-    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators((Map<ByteIterator, ByteIterator>) row, values);
+    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
+            (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
     backend.put(key, (Map<ByteIterator, ByteIterator>) row);
 
     return Status.OK;
