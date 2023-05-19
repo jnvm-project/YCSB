@@ -118,11 +118,20 @@ public class InfinispanJNVMClient extends DB {
         if (row == null) {
           return Status.ERROR;
         } else {
-          //OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(row, values);
           for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
-            OffHeapStringByteIterator oldVal =
-                row.replaceValue(entry.getKey().toOffHeapStringByteIterator(),
-                            entry.getValue().toOffHeapStringByteIterator());
+            OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
+            OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
+
+            //Ensure new value is persisted before mapping is updated
+            entryVal.validate();
+            entryVal.flush();
+            entryVal.fence();
+
+            //Update & flush mapping
+            OffHeapStringByteIterator oldVal = row.replaceValueStrong(entryKey, entryVal);
+
+            //Ensure mapping is updated before recycling old value
+            oldVal.fence();
             oldVal.invalidate();
           }
         }
