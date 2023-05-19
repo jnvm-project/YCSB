@@ -224,6 +224,9 @@ public class OffHeapStringByteIterator implements ByteIterator, OffHeapObject, C
   public void invalidate() {
     str.invalidate();
   }
+  public void resetFa() {
+    str.resetFa();
+  }
   public void flush() {
     str.flush();
   }
