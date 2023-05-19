@@ -29,7 +29,7 @@ import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
-import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableHashMap;
 import eu.telecomsudparis.jnvm.util.persistent.RecoverableMap;
 
 import java.io.IOException;
@@ -172,7 +172,7 @@ public class InfinispanJNVMClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
+      Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableHashMap<>(values.size());
       OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
           (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
       infinispanManager.getCache(cacheName).put(key, row);
