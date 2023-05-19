@@ -13,28 +13,28 @@ mkdir -p $EXPDIR $LOGDIR $DATADIR
 YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
-#ISPN_JPFA_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jpfa-config.xml"
 ISPN_AUTO_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-autopersist-config.xml"
 ISPN_PCJ_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-pcj-config.xml"
 
 #bindings="infinispan-autopersist infinispan"
 bindings="infinispan infinispan-jnvm infinispan-jpfa infinispan-pcj"
-#recordcounts="1000000"
 recordcounts="3000000"
 minoperationcount=10000000
 defaultfieldcount="10"
 fieldcounts="10"
 defaultfieldlength="100"
 fieldlengths="100"
-workloads="workloada workloadb workloadc workloadd workloadf" #workloade"
+workloads="workloada workloadb workloadc workloadf workloadd" #workloade"
 distribution="default"
 threads="1"
 ycsb_jobs="run"
 dataintegrity="true"
-ycsb_preload="-preload"
+#ycsb_preload="-preload" #no separate ycsb load run, 1-shot
+ycsb_preload=""
 
-n_run=1
-#n_run=6
+n_run=1 #1-shot
+#n_run=6 #error bars
+#n_run=16 #better error bars
 
 loadcacheproportion="10"
 #cacheproportions="100"
@@ -52,14 +52,19 @@ for binding in $bindings ; do
   m="default"
   p="default"
   fs="none"
+  ycsb_preload=""
+  minoperationcount=10000000
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true
     pcj=false
+    # more operations for jnvm, otherwise running time is too short
+    minoperationcount=50000000
     ISPN_CFG=$ISPN_JNVM_CFG
   elif [ $binding == "infinispan-jpfa" ] ; then
     offheap=true
     pcj=false
-    #ISPN_CFG=$ISPN_JPFA_CFG
+    # more operations for jnvm, otherwise running time is too short
+    minoperationcount=50000000
     ISPN_CFG=$ISPN_JNVM_CFG
   elif [ $binding == "infinispan-autopersist" ] ; then
     offheap=false
@@ -78,7 +83,6 @@ for binding in $bindings ; do
   for fieldcount in $fieldcounts ; do
   for fieldlength in $fieldlengths ; do
   for recordcount in $recordcounts ; do
-    #[ $binding == "infinispan-jnvm" ] && minoperationcount="3000000"
     [ $recordcount -lt $minoperationcount ] && operationcount=$minoperationcount\
                                             || operationcount=$recordcount
     cachesizes=""
@@ -91,9 +95,10 @@ for binding in $bindings ; do
     elif [ $binding == "infinispan-autopersist" ] ; then
       cachesizes="1"
       loadcachesize="1"
-#    elif [ $binding == "infinispan-pcj" ] ; then
-#      cachesizes="1"
-#      loadcachesize="1"
+    # Keep 10% cache for PCJ, otherwise performs worse than trash
+    #elif [ $binding == "infinispan-pcj" ] ; then
+    #cachesizes="1"
+    #loadcachesize="1"
     else
       for cacheproportion in $cacheproportions ; do
         cachesizes=$cachesizes" "$(( $recordcount * $cacheproportion / 100 ))
@@ -128,6 +133,8 @@ for binding in $bindings ; do
       preload=$defaultpreload
     for thread in $threads ; do
       for workload in $workloads ; do
+        # re-generate data for workload d, since it changes the pmem heap state
+        [ $workload == "workloadd" ] && ycsb_preload="-preload"
         for integrity in $dataintegrity ; do
           for ycsb_job in $ycsb_jobs ; do
           for i in `seq 1 $n_run` ; do

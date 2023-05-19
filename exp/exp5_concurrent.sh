@@ -13,13 +13,18 @@ mkdir -p $EXPDIR $LOGDIR $DATADIR
 YCSB_DIR=..
 ISPN_DFLT_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml"
 ISPN_JNVM_CFG="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml"
+ISPN_VLTL_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-volatile-config.xml.tmpl"
 ISPN_DFLT_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-config.xml.tmpl"
 ISPN_JNVM_CFG_TMPL="${YCSB_DIR}/infinispan/src/main/conf/infinispan-jnvm-config.xml.tmpl"
 
 bindings="infinispan infinispan-jnvm"
 recordcounts="1000000"
+# normal op count
 minoperationcount=6000000
 maxoperationcount=60000000
+# volatile op count
+#minoperationcount=40000000
+#maxoperationcount=160000000
 defaultfieldcount="10"
 fieldcounts="10"
 defaultfieldlength="100"
@@ -32,7 +37,8 @@ threads="1 2 "`seq 4 4 20`
 #threads="1 2 "`seq 4 4 40`
 ycsb_jobs="run"
 dataintegrity="true"
-ycsb_preload="-preload"
+#ycsb_preload="-preload"
+ycsb_preload=""
 
 n_run=1
 #n_run=6
@@ -41,6 +47,9 @@ p="default"
 fs="none"
 
 loadcacheproportion="10"
+# volatile only
+#cacheproportions="100"
+# normal
 cacheproportions="10 100"
 defaultreadonly="false"
 defaultpreload="true"
@@ -54,18 +63,24 @@ maxoperationcount="100000"
 fi
 
 for binding in $bindings ; do
+  ycsb_preload=""
   if [ $binding == "infinispan-jnvm" ] ; then
     offheap=true
     pcj=false
     ISPN_CFG=$ISPN_JNVM_CFG
     ISPN_CFG_TMPL=$ISPN_JNVM_CFG_TMPL
     fs="none"
+    ycsb_preload=""
   else
     offheap=false
     pcj=false
     ISPN_CFG=$ISPN_DFLT_CFG
     ISPN_CFG_TMPL=$ISPN_DFLT_CFG_TMPL
     fs="pmem0"
+    # volatile only
+    #ycsb_preload="-preload"
+    # normal
+    ycsb_preload=""
   fi
   for fieldcount in $fieldcounts ; do
   for fieldlength in $fieldlengths ; do
