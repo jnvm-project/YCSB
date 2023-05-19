@@ -141,7 +141,7 @@ public class InfinispanJPFAClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-//      OffHeap.startRecording();
+      OffHeap.startRecording();
       Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableStrongHashMap<>(values.size());
       infinispanManager.getCache(cacheName).put(key, row);
       for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
@@ -152,7 +152,7 @@ public class InfinispanJPFAClient extends DB {
         eVal.validate();
       }
       ((RecoverableStrongHashMap) row).validate();
-//      OffHeap.stopRecording();
+      OffHeap.stopRecording();
 
       return Status.OK;
     } catch (Exception e) {

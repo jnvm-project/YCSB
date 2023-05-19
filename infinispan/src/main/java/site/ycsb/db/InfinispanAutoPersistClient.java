@@ -138,12 +138,14 @@ public class InfinispanAutoPersistClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
-      //OffHeap.startRecording();
+      OffHeap.startRecording();
+
       AutoPersistMap<OffHeapStringByteIterator, OffHeapStringByteIterator,
                      ByteIterator, ByteIterator> row =
           new AutoPersistMap<>(values);
+
       infinispanManager.getCache(cacheName).put(key, row);
-      //OffHeap.stopRecording();
+      OffHeap.stopRecording();
 
       return Status.OK;
     } catch (Exception e) {
