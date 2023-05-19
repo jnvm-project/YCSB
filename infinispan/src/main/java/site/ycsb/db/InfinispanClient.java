@@ -39,7 +39,12 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a client implementation for Infinispan 5.x.
+ * This is a client implementation for Infinispan 9.4.X,
+ * meant for use with ISPN file persistence backend
+ *
+ * We replaced Cache<String, Map<String, String>>
+ *   with Cache<ByteIterator, Map<ByteIterator, ByteIterator>>
+ * to match and be consistent with other backends.
  */
 public class InfinispanClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanClient.class);
@@ -85,16 +90,20 @@ public class InfinispanClient extends DB {
       Map<ByteIterator, ByteIterator> row;
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key);
-/*
+
+      /*
       Map<String, String> row;
       Cache<String, Map<String, String>> cache = infinispanManager.getCache(cacheName);
       row = cache.get(key.toString());
-*/
+      */
+
       if (row == null) {
         return Status.ERROR;
       }
       result.value = row;
-/*
+
+      // Do not bother returning only selected fields, always return all of them.
+      /*
       if (row != null) {
         result.value.clear();
         if (fields == null || fields.isEmpty()) {
@@ -107,7 +116,7 @@ public class InfinispanClient extends DB {
           }
         }
       }
-*/
+      */
       return Status.OK;
     } catch (Exception e) {
       LOGGER.error(e);
@@ -126,20 +135,23 @@ public class InfinispanClient extends DB {
     try {
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache = infinispanManager.getCache(cacheName);
       Map<ByteIterator, ByteIterator> row = cache.get(key);
-/*
+
+      /*
       Cache<String, Map<String, String>> cache = infinispanManager.getCache(cacheName);
       Map<String, String> row = cache.get(key.toString());
-*/
+      */
+
       if (row == null) {
         //row = new HashMap<>();
         return Status.ERROR; //Should be found, no silent fail
       }
       row.putAll(values);
       cache.put(key, row); //always put back into the store, for the persistent layer to properly work
-/*
+
+      /*
       StringByteIterator.putAllAsStrings(row, values);
       cache.put(key.toString(), row); //always put back into the store, for the persistent layer to properly work
-*/
+      */
 
       return Status.OK;
     } catch (Exception e) {
@@ -154,11 +166,12 @@ public class InfinispanClient extends DB {
       Map<ByteIterator, ByteIterator> row = new HashMap<>();
       row.putAll(values);
       infinispanManager.getCache(cacheName).put(key, row);
-/*
+
+      /*
       Map<String, String> row = new HashMap<>();
       StringByteIterator.putAllAsStrings(row, values);
       infinispanManager.getCache(cacheName).put(key.toString(), row);
-*/
+      */
 
       return Status.OK;
     } catch (Exception e) {
@@ -171,6 +184,7 @@ public class InfinispanClient extends DB {
     String cacheName = table.toString();
     try {
       //infinispanManager.getCache(cacheName).remove(key.toString());
+
       infinispanManager.getCache(cacheName).remove(key);
       return Status.OK;
     } catch (Exception e) {

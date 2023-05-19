@@ -42,7 +42,12 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a client implementation for Infinispan 5.x.
+ * This is a client implementation for Infinispan 9.4.X,
+ * meant for use with PCJ PersistentHashMap backend
+ *
+ * Not sure whether we are supposed to enclose everything inside of PCJ transactions,
+ * depends on the semantics of YCSB operations
+ * Let's not add PCJ transactions, this will be a best case baseline for that backend.
  */
 public class InfinispanPCJClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanPCJClient.class);

@@ -43,7 +43,12 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a client implementation for Infinispan 5.x.
+ * This is a client implementation for Infinispan 9.4.X,
+ * meant to be used with JNVM AutoPersist-like HashMap backend
+ *
+ *   In comparison to other JNVM backends,
+ *   this should be run without OffHeapStringByteIterators,
+ *   but regular StringByteIterators.
  */
 public class InfinispanAutoPersistClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanAutoPersistClient.class);
@@ -123,6 +128,8 @@ public class InfinispanAutoPersistClient extends DB {
         return Status.ERROR;
       } else {
         for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+          // This special call takes care of turning Convertible<> volatile objects into their
+          // off-heap conterparts in a crash-consistent way whilst inserting them into the row map.
           row.putConvert(entry.getKey(), entry.getValue());
         }
       }
@@ -138,8 +145,14 @@ public class InfinispanAutoPersistClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
+      // Must use a transaction here as well for YCSB workload d
       OffHeap.startRecording();
 
+      // AutoPersist-like Map is itself a Convertible<>,
+      //   so it can be conveniently instanciated crash-consistently from its own volatile counterpart.
+      // The underlying AutoPersist-like algorithm will do
+      //   the (in-depth) migration of all reachable objects on-the-fly,
+      //   since the whole sub-graph is required to implement Convertible<>.
       AutoPersistMap<OffHeapStringByteIterator, OffHeapStringByteIterator,
                      ByteIterator, ByteIterator> row =
           new AutoPersistMap<>(values);

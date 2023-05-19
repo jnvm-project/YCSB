@@ -44,7 +44,11 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a client implementation for Infinispan 5.x.
+ * This is a client implementation for Infinispan 9.4.x,
+ * meant for use with JNVM JPFA persistence backend,
+ *
+ * i.e., use weak calls paired with JNVM failure-atomic blocks,
+ * instead of strong (crash-consistent) calls.
  */
 public class InfinispanJPFAClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanJPFAClient.class);
@@ -125,6 +129,8 @@ public class InfinispanJPFAClient extends DB {
           OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
           OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
           OffHeapStringByteIterator eOldVal = row.replaceValue(eKey, eVal);
+          // Both values were created by the YCSB client, outside the transaction,
+          //   we need to manually call these methods for them to be logged.
           eVal.validate();
           eOldVal.invalidate();
         }
@@ -148,9 +154,18 @@ public class InfinispanJPFAClient extends DB {
         OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
         OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
         row.put(eKey, eVal);
+        // Both the key and the value were created by the YCSB client, outside the transaction,
+        //   we need to manually call validate() for them to be logged.
+        //
+        // TODO: Would it be fair to have the YCSB client validate these beforehand,
+        //   right after creating them? (Would be more efficient than in the FA section)
         eKey.validate();
         eVal.validate();
       }
+      // This call is optional, since “row” was created inside the transaction.
+      // JNVM will ignore it and not log it.
+      // Newly created objects inside transactions are already tracked
+      //   and will be automically validated at the end of it.
       ((RecoverableStrongHashMap) row).validate();
       OffHeap.stopRecording();
 

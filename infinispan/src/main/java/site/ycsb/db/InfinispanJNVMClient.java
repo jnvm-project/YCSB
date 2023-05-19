@@ -43,7 +43,8 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a client implementation for Infinispan 5.x.
+ * This is a client implementation for Infinispan 9.4.x,
+ * meant for use with JNVM StrongHashMap persistence backend.
  */
 public class InfinispanJNVMClient extends DB {
   private static final Log LOGGER = LogFactory.getLog(InfinispanJNVMClient.class);
@@ -104,6 +105,20 @@ public class InfinispanJNVMClient extends DB {
   public Status scan(ByteIterator table, ByteIterator startkey, int recordcount,
       Set<ByteIterator> fields, Vector<HashMap<ByteIterator, ByteIterator>> result) {
     LOGGER.warn("Infinispan does not support scan semantics");
+    // Note: ISPN has no notion of next key or key/value pairs ordering at all
+    //
+    // Still, we could emulate a scan operation by requesting *by hand* specific keys,
+    //   and cheat this with our knowledge of how the client named the keys.
+    //
+    // Alternatively, we could also use ISPN CacheStream API to return a sequence of key/values pairs, and do either:
+    //   1- .limit(recordcount) to get whatever pairs for a N iterations (constant)
+    //   OR
+    //   2- .filter() to get the right sequence of pairs, altough that means always iterating over the whole cache
+    // Option 1 might be preferable since it does not always iterate over the whole Cache,
+    //   although it might return the same keySet on each invocation.
+    //
+    // Best solution might be, after all, to manually construct the matching KeySet
+    //   and perform a getAll() operation on the ISPN Cache.
     return Status.OK;
   }
 
@@ -114,10 +129,15 @@ public class InfinispanJNVMClient extends DB {
       Cache<ByteIterator, RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator>> cache =
           infinispanManager.getCache(cacheName);
       row = cache.get(key);
+      // Note: row proxies are never deleted with the StrongHashMap backend,
+      //   thus they can be used to guard on concurrent updates.
       synchronized(row) {
         if (row == null) {
           return Status.ERROR;
         } else {
+          // Are YCSB update commands supposed to execute atomically?
+          // If so, we need an atomic putAll() call instead of looping columns 1 by 1.
+          // Note: Not too much of an issue, YCSB defaults issue update commands with 1 column only.
           for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
             OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
             OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
@@ -137,9 +157,10 @@ public class InfinispanJNVMClient extends DB {
         }
       }
 
-/*
-      //Experimental thread-safe row updates using ISPN api to guard row
-      //update closure. Performs worse than synchronized.
+      // Experimental thread-safe row updates using ISPN api
+      //   to perform update operations atomically using a closure.
+      // Performs worse than synchronized.
+      /*
       cache.compute(key, (k, v) -> {
           Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = v;
           if (row == null) {
@@ -169,7 +190,7 @@ public class InfinispanJNVMClient extends DB {
           }
           return (Map<ByteIterator, ByteIterator>) row;
         });
-*/
+      */
 
       return Status.OK;
     } catch (Exception e) {
@@ -181,6 +202,20 @@ public class InfinispanJNVMClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
+      // Warning: not only used for YCSB load
+      // => need a correct implementation for workload D
+      //
+      //  1- make new row map and ensure that all reachable PMEM objects are flushed and validated
+      //  2- put row inside StrongHashMap backend (& flush relevant mutated PMEM locations in the backend)
+      //  3- fence
+      //  4- validate row object
+      //
+      //  If step 2 is atomic, we can also consider doing (1),(4) -> fence -> (2) instead.
+      //
+      // Optimizations:
+      //   - might want to add a switch for YCSB_load that deactivate fences,
+      //     alternatively, YCSB_load could be performed with flush/fences turned off altogether if not benchmarked.
+
       // Fast (no-guarantee) inserts
       /*
       Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableHashMap<>(values.size());
@@ -198,6 +233,7 @@ public class InfinispanJNVMClient extends DB {
         entryKey.validate();
         entryVal.validate();
         // Flushing key/value pairs accounts for more than half of the total latency of insert operations
+        // TODO: Would it be fair to flush k/v pairs when created in the YCSB client to save time here?
         entryKey.flush();
         entryVal.flush();
 
@@ -210,10 +246,10 @@ public class InfinispanJNVMClient extends DB {
       row.fence();
       row.validate();
 
-/*
-      //Experimental node insertion - avoids creating the row if already
-      //present. Useless since that's never the case in normal execution.
-      //Performs worse than normal.
+      // Experimental node insertion - avoids creating the row if already present.
+      // Useless since that's never the case in normal execution.
+      // Performs worse than normal.
+      /*
       Cache<ByteIterator, Map<ByteIterator, ByteIterator>> cache =
           infinispanManager.getCache(cacheName);
       cache.computeIfAbsent(key, (k) -> {
@@ -223,7 +259,7 @@ public class InfinispanJNVMClient extends DB {
               OffHeapStringByteIterator>) row, values);
           return (Map<ByteIterator, ByteIterator>) row;
         });
-*/
+      */
 
       return Status.OK;
     } catch (Exception e) {
@@ -235,6 +271,8 @@ public class InfinispanJNVMClient extends DB {
   public Status delete(ByteIterator table, ByteIterator key) {
     String cacheName = table.toString();
     try {
+      // Not present in any workloads,
+      //   do not worry too much about implementing this.
       infinispanManager.getCache(cacheName).remove(key);
       return Status.OK;
     } catch (Exception e) {
