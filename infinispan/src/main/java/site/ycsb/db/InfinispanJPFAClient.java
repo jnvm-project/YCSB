@@ -29,7 +29,7 @@ import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
-import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableHashMap;
 import eu.telecomsudparis.jnvm.util.persistent.RecoverableMap;
 import eu.telecomsudparis.jnvm.offheap.OffHeap;
 
@@ -148,7 +148,7 @@ public class InfinispanJPFAClient extends DB {
     String cacheName = table.toString();
     try {
       OffHeap.startRecording();
-      Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableStrongHashMap<>(values.size());
+      Map<OffHeapStringByteIterator, OffHeapStringByteIterator> row = new RecoverableHashMap<>(values.size());
       infinispanManager.getCache(cacheName).put(key, row);
       for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
         OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
@@ -166,7 +166,7 @@ public class InfinispanJPFAClient extends DB {
       // JNVM will ignore it and not log it.
       // Newly created objects inside transactions are already tracked
       //   and will be automically validated at the end of it.
-      ((RecoverableStrongHashMap) row).validate();
+      ((RecoverableMap) row).validate();
       OffHeap.stopRecording();
 
       return Status.OK;
