@@ -181,10 +181,34 @@ public class InfinispanJNVMClient extends DB {
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
     String cacheName = table.toString();
     try {
+      // Fast (no-guarantee) inserts
+      /*
       Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableHashMap<>(values.size());
       OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
           (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
       infinispanManager.getCache(cacheName).put(key, row);
+      */
+
+      RecoverableMap<OffHeapStringByteIterator,
+              OffHeapStringByteIterator> row = new RecoverableHashMap<>(values.size());
+      for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+        OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
+        OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
+
+        entryKey.validate();
+        entryVal.validate();
+        // Flushing key/value pairs accounts for more than half of the total latency of insert operations
+        entryKey.flush();
+        entryVal.flush();
+
+        row.put(entryKey, entryVal);
+      }
+      row.flush();
+
+      infinispanManager.getCache(cacheName).put(key, row);
+
+      row.fence();
+      row.validate();
 
 /*
       //Experimental node insertion - avoids creating the row if already
