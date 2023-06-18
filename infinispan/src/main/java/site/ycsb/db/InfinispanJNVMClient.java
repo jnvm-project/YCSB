@@ -245,6 +245,8 @@ public class InfinispanJNVMClient extends DB {
 
       row.fence();
       row.validate();
+      row.writebackHeader();
+      row.fence();
 
       // Experimental node insertion - avoids creating the row if already present.
       // Useless since that's never the case in normal execution.
