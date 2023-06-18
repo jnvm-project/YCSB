@@ -234,6 +234,7 @@ public class InfinispanJNVMClient extends DB {
         entryVal.validate();
         // Flushing key/value pairs accounts for more than half of the total latency of insert operations
         // TODO: Would it be fair to flush k/v pairs when created in the YCSB client to save time here?
+        //   => does not change throughput measure, only the reported latency of insert operations
         entryKey.flush();
         entryVal.flush();
 
@@ -245,6 +246,7 @@ public class InfinispanJNVMClient extends DB {
 
       row.fence();
       row.validate();
+      // TODO: Would an implicit flush be good enough here?
       row.writebackHeader();
       row.fence();
 
