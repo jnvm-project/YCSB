@@ -128,6 +128,7 @@ public class InfinispanJPFAClient extends DB {
         for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
           OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
           OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
+          // Use the weaker variant replaceValue (no flush/fence), because we are in a FA section
           OffHeapStringByteIterator eOldVal = row.replaceValue(eKey, eVal);
           // Both values were created by the YCSB client, outside the transaction,
           //   we need to manually call these methods for them to be logged.
