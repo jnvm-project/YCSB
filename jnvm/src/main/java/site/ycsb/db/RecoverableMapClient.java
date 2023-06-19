@@ -18,6 +18,7 @@
 package site.ycsb.db;
 
 import eu.telecomsudparis.jnvm.util.persistent.RecoverableStrongHashMap;
+import eu.telecomsudparis.jnvm.util.persistent.RecoverableMap;
 
 import site.ycsb.ByteIterator;
 import site.ycsb.OffHeapStringByteIterator;
@@ -122,12 +123,24 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
-    Map<? extends ByteIterator, ? extends ByteIterator> row = backend.get(key);
+    RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator> row =
+        (RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator>) backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
-    OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
-            (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
+    for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+      OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
+      OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
+
+      entryVal.validate();
+      entryVal.flush();
+      entryVal.fence();
+
+      OffHeapStringByteIterator oldVal = row.replaceValueStrong(entryKey, entryVal);
+
+      oldVal.fence();
+      oldVal.invalidate();
+    }
 
     return Status.OK;
   }
@@ -147,10 +160,34 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
    */
   @Override
   public Status insert(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
+    // Fast (no-guarantee) inserts
+    /*
     Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
     OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
             (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
+    */
+
+    RecoverableMap<OffHeapStringByteIterator, OffHeapStringByteIterator> row =
+        new RecoverableStrongHashMap<>(values.size());
+    for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
+      OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
+      OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
+
+      entryKey.validate();
+      entryVal.validate();
+      // Flushing key/value pairs accounts for more than half of the total latency of insert operations
+      // TODO: Would it be fair to flush k/v pairs when created in the YCSB client to save time here?
+      entryKey.flush();
+      entryVal.flush();
+
+      row.put(entryKey, entryVal);
+    }
+    row.flush();
+
     backend.put(key, row);
+
+    row.fence();
+    row.validate();
 
     return Status.OK;
   }
