@@ -57,7 +57,7 @@ public abstract class VolatileMapClient extends AbstractMapClient {
         try {
           FileInputStream fis = new FileInputStream(PMEM_FILE);
           ObjectInputStream ois = new ObjectInputStream(fis);
-          backend = (Map<ByteIterator, Map<ByteIterator, ByteIterator>>) ois.readObject();
+          backend = (Map<ByteIterator, Map<? extends ByteIterator, ? extends ByteIterator>>) ois.readObject();
           ois.close();
           fis.close();
         } catch(Exception e) {

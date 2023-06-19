@@ -150,7 +150,7 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
     Map<? extends ByteIterator, ? extends ByteIterator> row = new RecoverableStrongHashMap<>(values.size());
     OffHeapStringByteIterator.putAllAsOffHeapStringByteIterators(
             (Map<OffHeapStringByteIterator, OffHeapStringByteIterator>) row, values);
-    backend.put(key, (Map<ByteIterator, ByteIterator>) row);
+    backend.put(key, row);
 
     return Status.OK;
   }

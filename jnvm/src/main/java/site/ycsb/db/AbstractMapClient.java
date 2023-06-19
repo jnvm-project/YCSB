@@ -45,7 +45,8 @@ public abstract class AbstractMapClient extends DB {
   protected static final long POOL_SIZE=4*1024*1024*1024L;
 
   protected PMemPool pmemPool;
-  protected static Map<ByteIterator, Map<ByteIterator, ByteIterator>> backend;
+  protected static Map<ByteIterator,
+      Map<? extends ByteIterator, ? extends ByteIterator>> backend;
 
   protected int initialCapacity;
   protected boolean dotransactions;
@@ -97,7 +98,7 @@ public abstract class AbstractMapClient extends DB {
   @Override
   public Status read(ByteIterator table, ByteIterator key, Set<ByteIterator> fields,
       Holder<Map<ByteIterator, ByteIterator>> result) {
-    Map<ByteIterator, ByteIterator> row = backend.get(key);
+    Map<ByteIterator, ByteIterator> row = (Map<ByteIterator, ByteIterator>) backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
@@ -157,7 +158,7 @@ public abstract class AbstractMapClient extends DB {
    */
   @Override
   public Status update(ByteIterator table, ByteIterator key, Map<ByteIterator, ByteIterator> values) {
-    Map<ByteIterator, ByteIterator> row = backend.get(key);
+    Map<ByteIterator, ByteIterator> row = (Map<ByteIterator, ByteIterator>) backend.get(key);
     if(row == null) {
       return Status.ERROR;
     }
