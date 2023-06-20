@@ -599,6 +599,12 @@ public class CoreWorkload extends Workload {
       // fill with random data
       data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
     }
+    if (offheap) {
+      OffHeapStringByteIterator ohsbi = data.toOffHeapStringByteIterator();
+      ohsbi.validate();
+      ohsbi.flush();
+      data = ohsbi;
+    }
     value.put(fieldkey, data);
 
     return value;
@@ -620,6 +626,12 @@ public class CoreWorkload extends Workload {
       } else {
         // fill with random data
         data = new RandomByteIterator(fieldlengthgenerator.nextValue().longValue());
+      }
+      if (offheap) {
+        OffHeapStringByteIterator ohsbi = data.toOffHeapStringByteIterator();
+        ohsbi.validate();
+        ohsbi.flush();
+        data = ohsbi;
       }
       values.put(fieldkey, data);
     }

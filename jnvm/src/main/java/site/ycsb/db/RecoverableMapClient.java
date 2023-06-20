@@ -128,16 +128,22 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
     if(row == null) {
       return Status.ERROR;
     }
+    row.fence(); // ensure generated (new) values are persisted before being inserted.
     for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
       OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
       OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
 
-      entryVal.validate();
-      entryVal.flush();
-      entryVal.fence();
+      //Ensure new value is persisted before mapping is updated
+      // NOTE: this is already done in the YCSB client
+      //entryVal.validate();
+      //entryVal.flush();
+      //entryVal.fence();
 
+      //Update & flush mapping
       OffHeapStringByteIterator oldVal = row.replaceValueStrong(entryKey, entryVal);
 
+      //Ensure mapping is updated before recycling old value
+      // TODO: Free old values in a single block to reduce number of fences
       oldVal.fence();
       oldVal.invalidate();
     }
@@ -173,12 +179,14 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
       OffHeapStringByteIterator entryKey = entry.getKey().toOffHeapStringByteIterator();
       OffHeapStringByteIterator entryVal = entry.getValue().toOffHeapStringByteIterator();
 
-      entryKey.validate();
-      entryVal.validate();
+      // NOTE: this is already done in the YCSB client
+      //entryKey.validate();
+      //entryVal.validate();
       // Flushing key/value pairs accounts for more than half of the total latency of insert operations
-      // TODO: Would it be fair to flush k/v pairs when created in the YCSB client to save time here?
-      entryKey.flush();
-      entryVal.flush();
+      // TODO: Is it fair to flush k/v pairs when created in the YCSB client to save time here?
+      //   => does not change throughput measure, only the reported latency of insert operations
+      //entryKey.flush();
+      //entryVal.flush();
 
       row.put(entryKey, entryVal);
     }
@@ -188,6 +196,9 @@ public abstract class RecoverableMapClient extends AbstractMapClient {
 
     row.fence();
     row.validate();
+    // TODO: Would an implicit flush be good enough here?
+    row.writebackHeader();
+    row.fence();
 
     return Status.OK;
   }

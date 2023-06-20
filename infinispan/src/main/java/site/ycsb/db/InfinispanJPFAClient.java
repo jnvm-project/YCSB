@@ -128,11 +128,15 @@ public class InfinispanJPFAClient extends DB {
         for (Map.Entry<ByteIterator, ByteIterator> entry : values.entrySet()) {
           OffHeapStringByteIterator eKey = entry.getKey().toOffHeapStringByteIterator();
           OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
+
           // Use the weaker variant replaceValue (no flush/fence), because we are in a FA section
           OffHeapStringByteIterator eOldVal = row.replaceValue(eKey, eVal);
-          // Both values were created by the YCSB client, outside the transaction,
-          //   we need to manually call these methods for them to be logged.
-          eVal.validate();
+
+          // NOTE: this is already done in the YCSB client
+          //eVal.validate();
+
+          // Old value was created by the YCSB client, outside the transaction,
+          //   we need to manually call that methods for it to be logged and freed.
           eOldVal.invalidate();
         }
       }
@@ -156,12 +160,13 @@ public class InfinispanJPFAClient extends DB {
         OffHeapStringByteIterator eVal = entry.getValue().toOffHeapStringByteIterator();
         row.put(eKey, eVal);
         // Both the key and the value were created by the YCSB client, outside the transaction,
-        //   we need to manually call validate() for them to be logged.
+        //   and were already validated.
+        //   We need not log then, hence, not to call validate().
         //
-        // TODO: Would it be fair to have the YCSB client validate these beforehand,
-        //   right after creating them? (Would be more efficient than in the FA section)
-        eKey.validate();
-        eVal.validate();
+        // TODO: Is it fair to have the YCSB client validate these beforehand,
+        //   right after creating them? (More efficient than in the FA section)
+        //eKey.validate();
+        //eVal.validate();
       }
       // This call is optional, since “row” was created inside the transaction.
       // JNVM will ignore it and not log it.
